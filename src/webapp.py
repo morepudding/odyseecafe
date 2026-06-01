@@ -8,6 +8,7 @@ Usage : python src/webapp.py  →  http://localhost:5000
 
 import sys
 import os
+import json
 from pathlib import Path
 from flask import Flask, render_template_string, jsonify, request, session, Response
 from dotenv import load_dotenv
@@ -20,6 +21,9 @@ from editorial_db         import list_editorial_themes
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
+
+DATA_DIR = Path(__file__).parent.parent / "data"
+CURRENT_TOPIC_PATH = DATA_DIR / "current_topic.json"
 
 _thread_state = {"question": None, "tweets": [], "sources": [], "mode": "balanced"}
 
@@ -970,11 +974,41 @@ HTML = """
 
 def _get_thread_state():
     if not _thread_state["question"]:
-        q = "Colle ici un sujet issu du Radar Grok."
+        current_topic = _load_current_topic()
+        q = (current_topic or {}).get("question") or "Colle ici un sujet issu du Radar Grok."
         _thread_state["question"] = q
         _thread_state["tweets"] = [""] * 5
-        _thread_state["sources"] = []
+        _thread_state["sources"] = (current_topic or {}).get("sources") or []
     return _thread_state
+
+
+def _load_current_topic() -> dict | None:
+    try:
+        if not CURRENT_TOPIC_PATH.exists():
+            return None
+        data = json.loads(CURRENT_TOPIC_PATH.read_text(encoding="utf-8"))
+        question = (data.get("question") or "").strip()
+        if not question:
+            return None
+        return {
+            "question": question,
+            "sources": data.get("sources") if isinstance(data.get("sources"), list) else [],
+        }
+    except Exception:
+        return None
+
+
+def _save_current_topic(question: str, sources: list[dict] | None = None, origin: str = "manual") -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "question": question.strip(),
+        "origin": origin,
+        "sources": sources or [],
+    }
+    CURRENT_TOPIC_PATH.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 
 def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
@@ -1102,9 +1136,31 @@ def api_thread():
         _thread_state["tweets"]   = result["tweets"]
         _thread_state["sources"]  = result["sources"]
         _thread_state["mode"]     = result["mode"]
+        _save_current_topic(q, result["sources"], origin="thread")
         return jsonify(ok=True, question=q, tweets=result["tweets"], sources=result["sources"], mode=result["mode"])
     except Exception as e:
         return jsonify(ok=False, error=str(e))
+
+
+@app.route("/api/topic", methods=["GET", "POST"])
+def api_topic():
+    if request.method == "GET":
+        state = _get_thread_state()
+        return jsonify(ok=True, question=state["question"], sources=state["sources"], mode=state["mode"])
+
+    data = request.get_json(silent=True) or {}
+    q = (data.get("question") or "").strip()
+    if not q:
+        return jsonify(ok=False, error="Question vide"), 400
+
+    sources = data.get("sources") if isinstance(data.get("sources"), list) else []
+    origin = (data.get("origin") or "manual").strip()[:40]
+    _thread_state["question"] = q
+    _thread_state["tweets"] = [""] * 5
+    _thread_state["sources"] = sources
+    _thread_state["mode"] = "balanced"
+    _save_current_topic(q, sources, origin=origin)
+    return jsonify(ok=True, question=q, sources=sources)
 
 
 @app.route("/api/chat", methods=["POST"])

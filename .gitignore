@@ -35,3 +35,6 @@ Thumbs.db
 # Logs
 *.log
 .vercel
+
+# Runtime topic cache filled by the daily news watch
+data/current_topic.json
