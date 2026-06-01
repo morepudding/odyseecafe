@@ -1,12 +1,52 @@
 # Corpus — HistoryCafé Napoleon IA
 
-## Objectif
-Rassembler des textes écrits PAR Napoléon Bonaparte et des textes historiques le concernant,
-pour alimenter un système RAG dont le but est de faire parler Napoléon à la première personne.
+> **Structure des dossiers** : `corpus/napoleon/` pour Napoléon, `corpus/jeanne/` pour Jeanne d'Arc.
+> Chaque personnage a sa propre collection ChromaDB (`napoleon`, `jeanne`).
 
 ---
 
-## CATÉGORIE 1 — Écrits DIRECTS de Napoléon Bonaparte
+## JEANNE D'ARC
+
+### Ingestion
+```bash
+python src/ingest.py --character jeanne
+```
+
+### Sources disponibles (`corpus/jeanne/`)
+
+| Fichier | Langue | Taille | Source | Contenu |
+|---------|--------|--------|--------|---------|
+| `twain_joan_of_arc_EN.txt` | EN | ~1.2 MB | Gutenberg #2489 | Mark Twain — *Personal Recollections of Joan of Arc* — roman historique très documenté, inclut des extraits du procès |
+| `lowell_joan_of_arc_EN.txt` | EN | ~347 KB | Gutenberg #16766 | Francis C. Lowell — *Joan of Arc* — biographie savante EN |
+| `michelet_jeanne_arc_fr.txt` | FR | ~113 KB | Gutenberg #3730 | Jules Michelet — *Jeanne d'Arc* — FR, texte classique |
+
+**URLs de téléchargement :**
+- Twain EN : `https://www.gutenberg.org/cache/epub/2489/pg2489.txt`
+- Lowell EN : `https://www.gutenberg.org/cache/epub/16766/pg16766.txt`
+- Michelet FR : `https://www.gutenberg.org/cache/epub/3730/pg3730.txt`
+
+### Sources à ajouter (⏳ 503 Archive.org au 01/06/2026)
+
+| Fichier cible | Source | Contenu |
+|---|---|---|
+| `proces_condamnation_quicherat_fr.txt` | Archive.org `procsdecondamnat00jean` | Procès de condamnation 1431 — SOURCE PRIMAIRE EXCEPTIONNELLE (paroles de Jeanne sous serment) |
+| `proces_rehabilitation_fabre_fr.txt` | Archive.org `lesprcderhabi00fabr` | Procès en réhabilitation 1456 — témoignages contemporains |
+
+**URLs alternatives à réessayer :**
+- `https://archive.org/download/procsdecondamnat00jean/procsdecondamnat00jean_djvu.txt`
+- `https://archive.org/download/lesprcderhabi00fabr/lesprcderhabi00fabr_djvu.txt`
+- Script : `python src/download_jeanne_corpus.py`
+
+---
+
+## NAPOLÉON BONAPARTE
+
+### Ingestion
+```bash
+python src/ingest.py --character napoleon   # ou sans argument (défaut)
+```
+
+
 
 | Fichier | Langue | Taille | Source | Contenu |
 |---------|--------|--------|--------|---------|

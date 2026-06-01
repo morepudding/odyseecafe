@@ -35,7 +35,7 @@ _thread_state = {"question": None, "tweets": [], "sources": [], "mode": "balance
 
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
-    {"id": "jeanne",        "name": "Jeanne d'Arc",       "emoji": "🛡️", "active": False, "era": "1412 – 1431"},
+    {"id": "jeanne",        "name": "Jeanne d'Arc",       "emoji": "🛡️", "active": True,  "era": "1412 – 1431"},
     {"id": "antoinette",    "name": "Marie-Antoinette",   "emoji": "👑",  "active": False, "era": "1755 – 1793"},
     {"id": "voltaire",      "name": "Voltaire",           "emoji": "✒️",  "active": False, "era": "1694 – 1778"},
     {"id": "robespierre",   "name": "Robespierre",        "emoji": "🗡️", "active": False, "era": "1758 – 1794"},
@@ -313,6 +313,7 @@ HTML = """
       display: flex; align-items: center; justify-content: center; font-size: .9rem;
     }
     .msg.napoleon .msg-avatar { background: linear-gradient(135deg,#f59e0b,#b45309); }
+    .msg.jeanne   .msg-avatar { background: linear-gradient(135deg,#6366f1,#3730a3); }
     .msg.user     .msg-avatar { background: #1e2d45; }
     .msg-bubble {
       max-width: 80%; padding: .65rem .9rem; border-radius: 12px;
@@ -742,13 +743,6 @@ HTML = """
     <div class="tab-panel" id="tab-chat" style="padding-top:1.25rem">
       <div class="chat-window">
         <div class="chat-messages" id="chat-messages">
-          <div class="msg napoleon">
-            <div class="msg-avatar">⚔️</div>
-            <div>
-              <div class="msg-name">Napoléon Bonaparte</div>
-              <div class="msg-bubble">Que voulez-vous savoir ? Je suis là.</div>
-            </div>
-          </div>
         </div>
         <div class="chat-input-row">
           <textarea class="chat-input" id="chat-input" placeholder="Posez votre question…"
@@ -765,9 +759,19 @@ HTML = """
   // ── CHARACTER DATA (mirrors Python) ──
   const CHARS = {{ characters_json | safe }};
 
+  // Personnage actif courant (Napoleon par défaut)
+  let currentChar = CHARS.find(x => x.id === 'napoleon') || CHARS[0];
+
+  const CHAR_GREETINGS = {
+    napoleon: 'Que voulez-vous savoir ? Je suis là.',
+    jeanne:   'En nom de Dieu, posez votre question. Je vous répondrai.',
+  };
+
   function selectChar(id) {
     const c = CHARS.find(x => x.id === id);
     if (!c || !c.active) return;
+
+    currentChar = c;
 
     // Update sidebar highlight
     document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
@@ -782,6 +786,16 @@ HTML = """
     document.getElementById('coming-soon').classList.remove('visible');
     document.getElementById('active-panel').style.display = '';
     document.getElementById('stats-bar').style.display = '';
+
+    // Reset chat window for the new character
+    resetChat();
+  }
+
+  function resetChat() {
+    const box = document.getElementById('chat-messages');
+    box.innerHTML = '';
+    const greeting = CHAR_GREETINGS[currentChar.id] || 'Bonjour.';
+    appendMsg('ai', greeting);
   }
 
   // ── TABS ──
@@ -899,9 +913,10 @@ HTML = """
   function appendMsg(role, text) {
     const box = document.getElementById('chat-messages');
     const div = document.createElement('div');
-    div.className = 'msg ' + (role === 'user' ? 'user' : 'napoleon');
-    const avatarText = role === 'user' ? '🧑' : '⚔️';
-    const nameText   = role === 'user' ? 'Vous' : 'Napoléon Bonaparte';
+    const isAI = role !== 'user';
+    div.className = 'msg ' + (isAI ? currentChar.id : 'user');
+    const avatarText = isAI ? currentChar.emoji : '🧑';
+    const nameText   = isAI ? currentChar.name  : 'Vous';
     div.innerHTML = `
       <div class="msg-avatar">${avatarText}</div>
       <div>
@@ -916,10 +931,10 @@ HTML = """
   function appendTyping() {
     const box = document.getElementById('chat-messages');
     const div = document.createElement('div');
-    div.className = 'msg napoleon'; div.id = 'typing-indicator';
+    div.className = 'msg ' + currentChar.id; div.id = 'typing-indicator';
     div.innerHTML = `
-      <div class="msg-avatar">⚔️</div>
-      <div><div class="msg-name">Napoléon Bonaparte</div>
+      <div class="msg-avatar">${currentChar.emoji}</div>
+      <div><div class="msg-name">${currentChar.name}</div>
       <div class="msg-bubble">
         <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
       </div></div>`;
@@ -947,7 +962,7 @@ HTML = """
     fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: msg}),
+      body: JSON.stringify({message: msg, character: currentChar.id}),
     })
     .then(r => r.json())
     .then(d => {
@@ -995,6 +1010,8 @@ HTML = """
       });
     }).catch(() => {});
   }
+  // Initialiser le chat avec le message de bienvenue du personnage par défaut
+  document.addEventListener('DOMContentLoaded', () => resetChat());
 </script>
 </body>
 </html>
@@ -1233,11 +1250,14 @@ def api_topic():
 def api_chat():
     data = request.get_json(silent=True) or {}
     msg  = (data.get("message") or "").strip()
+    character = (data.get("character") or "napoleon").strip().lower()
+    if character not in {"napoleon", "jeanne"}:
+        character = "napoleon"
     if not msg:
         return jsonify(ok=False, error="Message vide")
     try:
-        from chat import chat as napoleon_chat
-        reply = napoleon_chat(msg)
+        from chat import chat as character_chat
+        reply = character_chat(msg, character=character)
         return jsonify(ok=True, reply=reply)
     except Exception as e:
         return jsonify(ok=False, error=str(e))

@@ -1,8 +1,14 @@
 """
 ingest.py — Chunking + Embedding + Stockage ChromaDB
 Embedding : nvidia/llama-nemotron-embed-vl-1b-v2:free via OpenRouter
+
+Usage :
+  python src/ingest.py                      # napoleon (défaut)
+  python src/ingest.py --character napoleon
+  python src/ingest.py --character jeanne
 """
 
+import argparse
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -12,11 +18,21 @@ from config import openrouter_api_key
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
+# ── Argument --character ──────────────────────────────────────────────────────
+_parser = argparse.ArgumentParser(description="Ingest a character corpus into ChromaDB")
+_parser.add_argument(
+    "--character", "-c",
+    default="napoleon",
+    help="Personnage à ingérer : napoleon | jeanne (défaut : napoleon)",
+)
+_args, _ = _parser.parse_known_args()
+CHARACTER = _args.character.lower().strip()
+
 OPENROUTER_API_KEY = openrouter_api_key()
 EMBED_MODEL        = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
-CORPUS_DIR         = Path(__file__).parent.parent / "corpus"
+CORPUS_DIR         = Path(__file__).parent.parent / "corpus" / CHARACTER
 CHROMA_DIR         = Path(__file__).parent.parent / "chroma_db"
-COLLECTION_NAME    = "napoleon"
+COLLECTION_NAME    = CHARACTER
 CHUNK_SIZE         = 1000   # caractères
 CHUNK_OVERLAP      = 150
 EMBED_BATCH        = 32     # nb de chunks par appel API
@@ -88,19 +104,24 @@ def ingest_file(filepath: Path, existing_ids: set):
             ids        = ids,
             embeddings = embeddings,
             documents  = batch,
-            metadatas  = [{"source": filepath.name} for _ in batch],
+            metadatas  = [{"source": filepath.name, "character": CHARACTER} for _ in batch],
         )
         nb_batch = (len(chunks) + EMBED_BATCH - 1) // EMBED_BATCH
         print(f"     batch {i // EMBED_BATCH + 1}/{nb_batch} — {len(batch)} chunks ajoutés")
 
 
 def main():
-    txt_files = sorted(CORPUS_DIR.glob("*.txt"))
-    if not txt_files:
-        print("Aucun fichier .txt trouvé dans corpus/")
+    if not CORPUS_DIR.exists():
+        print(f"Dossier corpus introuvable : {CORPUS_DIR}")
+        print(f"  → Crée le dossier et ajoute des .txt pour le personnage « {CHARACTER} ».")
         return
 
-    print(f"\n=== Ingestion — {len(txt_files)} fichier(s) ===")
+    txt_files = sorted(CORPUS_DIR.glob("*.txt"))
+    if not txt_files:
+        print(f"Aucun fichier .txt trouvé dans {CORPUS_DIR}")
+        return
+
+    print(f"\n=== Ingestion — personnage : {CHARACTER} — {len(txt_files)} fichier(s) ===")
     existing_ids = set(collection.get(include=[])["ids"])
 
     for f in txt_files:
