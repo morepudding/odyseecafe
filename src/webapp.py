@@ -1005,6 +1005,8 @@ def _load_current_topic() -> dict | None:
 
 
 def _save_current_topic(question: str, sources: list[dict] | None = None, origin: str = "manual") -> None:
+    if os.getenv("VERCEL"):
+        return
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
         "question": question.strip(),
