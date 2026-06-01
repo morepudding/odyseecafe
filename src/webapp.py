@@ -25,6 +25,11 @@ app.secret_key = secrets.token_hex(32)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 CURRENT_TOPIC_PATH = DATA_DIR / "current_topic.json"
+APP_VERSION = (
+    os.getenv("VERCEL_GIT_COMMIT_SHA")
+    or os.getenv("VERCEL_GIT_COMMIT_REF")
+    or "local"
+)[:12]
 
 _thread_state = {"question": None, "tweets": [], "sources": [], "mode": "balanced"}
 
@@ -968,7 +973,27 @@ HTML = """
 </script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+    navigator.serviceWorker.register('/sw.js?v={{ app_version }}').then((registration) => {
+      registration.update().catch(() => {});
+      if (registration.waiting) {
+        registration.waiting.postMessage({type: 'SKIP_WAITING'});
+      }
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            worker.postMessage({type: 'SKIP_WAITING'});
+          }
+        });
+      });
+    }).catch(() => {});
   }
 </script>
 </body>
@@ -1002,6 +1027,16 @@ def _load_current_topic() -> dict | None:
         }
     except Exception:
         return None
+
+
+@app.after_request
+def add_cache_headers(response):
+    path = request.path
+    if path == "/" or path.startswith("/api/") or path in {"/sw.js", "/manifest.webmanifest"}:
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 
 def _save_current_topic(question: str, sources: list[dict] | None = None, origin: str = "manual") -> None:
@@ -1089,6 +1124,7 @@ def index():
         grok_prompt     = GROK_RADAR_PROMPT,
         chunk_count     = chunk_count,
         model           = model,
+        app_version     = APP_VERSION,
     )
 
 
@@ -1109,18 +1145,40 @@ def manifest():
 @app.route("/sw.js")
 def service_worker():
     js = """
-const CACHE = 'odyseecafe-shell-v1';
-const ASSETS = ['/', '/manifest.webmanifest'];
+const CACHE = 'odyseecafe-shell-__APP_VERSION__';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  if (event.request.mode === 'navigate' || url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request, {cache: 'no-store'}));
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request, {cache: 'no-store'}).catch(() => caches.match(event.request))
+  );
 });
-"""
+""".replace("__APP_VERSION__", APP_VERSION)
     return Response(js, mimetype="application/javascript")
 
 
