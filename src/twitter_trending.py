@@ -17,14 +17,14 @@ from dotenv import load_dotenv
 import tweepy
 import httpx
 from openai import OpenAI
-from config import openrouter_api_key
+from config import env_value, openrouter_api_key
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 OPENROUTER_API_KEY   = openrouter_api_key()
-LLM_MODEL            = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
-APP_NAME             = os.getenv("OPENROUTER_APP_NAME", "historycafe-napoleon")
+LLM_MODEL            = env_value("OPENROUTER_MODEL", "openai/gpt-4o")
+APP_NAME             = env_value("OPENROUTER_APP_NAME", "historycafe-napoleon")
 
 # Mots-clés qui signalent un débat de société chaud en France
 SOCIETY_KEYWORDS = [

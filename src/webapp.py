@@ -18,6 +18,7 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 sys.path.insert(0, str(Path(__file__).parent))
 
 from editorial_db         import list_editorial_themes
+from config               import env_value
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -1031,11 +1032,11 @@ def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
     llm = OpenAI(
         api_key=openrouter_api_key() or "missing-key",
         base_url="https://openrouter.ai/api/v1",
-        default_headers={"X-Title": os.getenv("OPENROUTER_APP_NAME", "odyseecafe")},
+        default_headers={"X-Title": env_value("OPENROUTER_APP_NAME", "odyseecafe")},
         **({} if os.getenv("VERCEL") else {"http_client": httpx.Client(verify=False)}),
     )
     response = llm.chat.completions.create(
-        model=os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
+        model=env_value("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
         messages=[
             {"role": "system", "content": THREAD_FALLBACK_PROMPT},
             {"role": "user", "content": f"Question : {question}\n\n{style}"},
@@ -1072,7 +1073,7 @@ def index():
         except Exception:
             chunk_count = 0
 
-    model = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+    model = env_value("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
 
     return render_template_string(
         HTML,
