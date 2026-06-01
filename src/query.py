@@ -17,7 +17,7 @@ EMBED_MODEL        = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
 CHROMA_DIR         = Path(__file__).parent.parent / "chroma_db"
 COLLECTION_NAME    = "napoleon"
 
-_http = httpx.Client(verify=False, timeout=30)
+_http = httpx.Client(timeout=30) if os.getenv("VERCEL") else httpx.Client(verify=False, timeout=30)
 
 chroma_client = chromadb.PersistentClient(path=str(CHROMA_DIR))
 collection    = chroma_client.get_or_create_collection(COLLECTION_NAME)

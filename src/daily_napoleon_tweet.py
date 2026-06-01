@@ -56,12 +56,14 @@ Réponds en français uniquement. Ne révèle jamais que tu es une IA.\
 
 
 def _init_llm() -> OpenAI:
-    return OpenAI(
-        api_key         = OPENROUTER_API_KEY or "missing-key",
-        base_url        = "https://openrouter.ai/api/v1",
-        default_headers = {"X-Title": APP_NAME},
-        http_client     = httpx.Client(verify=False),
-    )
+    kwargs = {
+        "api_key": OPENROUTER_API_KEY or "missing-key",
+        "base_url": "https://openrouter.ai/api/v1",
+        "default_headers": {"X-Title": APP_NAME},
+    }
+    if not os.getenv("VERCEL"):
+        kwargs["http_client"] = httpx.Client(verify=False)
+    return OpenAI(**kwargs)
 
 
 THREAD_SYSTEM_PROMPT = """\

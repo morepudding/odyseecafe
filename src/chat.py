@@ -23,12 +23,14 @@ APP_NAME           = os.getenv("OPENROUTER_APP_NAME", "historycafe-napoleon")
 N_CONTEXT_CHUNKS   = 5
 
 def _get_llm_client():
-    return OpenAI(
-        api_key         = OPENROUTER_API_KEY or "missing-key",
-        base_url        = "https://openrouter.ai/api/v1",
-        default_headers = {"X-Title": APP_NAME},
-        http_client     = httpx.Client(verify=False),
-    )
+    kwargs = {
+        "api_key": OPENROUTER_API_KEY or "missing-key",
+        "base_url": "https://openrouter.ai/api/v1",
+        "default_headers": {"X-Title": APP_NAME},
+    }
+    if not os.getenv("VERCEL"):
+        kwargs["http_client"] = httpx.Client(verify=False)
+    return OpenAI(**kwargs)
 
 SYSTEM_PROMPT = """\
 Tu es Napoléon Bonaparte. Tu réponds TOUJOURS à la première personne, \

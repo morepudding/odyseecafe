@@ -54,12 +54,14 @@ def _init_twitter_client() -> tweepy.Client:
 
 
 def _init_llm_client() -> OpenAI:
-    return OpenAI(
-        api_key         = OPENROUTER_API_KEY,
-        base_url        = "https://openrouter.ai/api/v1",
-        default_headers = {"X-Title": APP_NAME},
-        http_client     = httpx.Client(verify=False),
-    )
+    kwargs = {
+        "api_key": OPENROUTER_API_KEY,
+        "base_url": "https://openrouter.ai/api/v1",
+        "default_headers": {"X-Title": APP_NAME},
+    }
+    if not os.getenv("VERCEL"):
+        kwargs["http_client"] = httpx.Client(verify=False)
+    return OpenAI(**kwargs)
 
 
 def fetch_viral_tweets(client: tweepy.Client) -> list[str]:

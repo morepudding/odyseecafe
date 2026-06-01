@@ -862,6 +862,11 @@ HTML = """
         } else { alert('Erreur : ' + d.error); }
         btn.disabled = false;
         btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
+      })
+      .catch(() => {
+        alert('Erreur : impossible de contacter le serveur de génération.');
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
       });
   }
 
@@ -1027,7 +1032,7 @@ def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
         api_key=openrouter_api_key() or "missing-key",
         base_url="https://openrouter.ai/api/v1",
         default_headers={"X-Title": os.getenv("OPENROUTER_APP_NAME", "odyseecafe")},
-        http_client=httpx.Client(verify=False),
+        **({} if os.getenv("VERCEL") else {"http_client": httpx.Client(verify=False)}),
     )
     response = llm.chat.completions.create(
         model=os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
