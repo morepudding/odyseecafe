@@ -1,0 +1,14 @@
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.log
+.env
+.env.local
+.env.*.local
+chroma_db
+corpus
+.vscode
+test-start*.log
+webapp-*.log

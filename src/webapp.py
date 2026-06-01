@@ -7,41 +7,78 @@ Usage : python src/webapp.py  →  http://localhost:5000
 """
 
 import sys
+import os
 from pathlib import Path
-from flask import Flask, render_template_string, jsonify, request, session
+from flask import Flask, render_template_string, jsonify, request, session, Response
 from dotenv import load_dotenv
 import secrets
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 sys.path.insert(0, str(Path(__file__).parent))
 
-from daily_napoleon_tweet import napoleon_thread
-from twitter_trending     import get_daily_polemic_question
-from chat                 import chat as napoleon_chat
+from editorial_db         import list_editorial_themes
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
-_thread_state = {"question": None, "tweets": []}
+_thread_state = {"question": None, "tweets": [], "sources": [], "mode": "balanced"}
 
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
+    {"id": "jeanne",        "name": "Jeanne d'Arc",       "emoji": "🛡️", "active": False, "era": "1412 – 1431"},
+    {"id": "antoinette",    "name": "Marie-Antoinette",   "emoji": "👑",  "active": False, "era": "1755 – 1793"},
     {"id": "voltaire",      "name": "Voltaire",           "emoji": "✒️",  "active": False, "era": "1694 – 1778"},
-    {"id": "moliere",       "name": "Molière",            "emoji": "🎭",  "active": False, "era": "1622 – 1673"},
-    {"id": "chateaubriand", "name": "Chateaubriand",      "emoji": "📖",  "active": False, "era": "1768 – 1848"},
-    {"id": "maurras",       "name": "Charles Maurras",    "emoji": "🏛️", "active": False, "era": "1868 – 1952"},
-    {"id": "celine",        "name": "Céline",             "emoji": "🖊️", "active": False, "era": "1894 – 1961"},
     {"id": "robespierre",   "name": "Robespierre",        "emoji": "🗡️", "active": False, "era": "1758 – 1794"},
-    {"id": "proudhon",      "name": "Proudhon",           "emoji": "⚙️", "active": False, "era": "1809 – 1865"},
-    {"id": "bainville",     "name": "Jacques Bainville",  "emoji": "📰", "active": False, "era": "1879 – 1936"},
 ]
+
+GROK_RADAR_PROMPT = """Analyse les sujets qui buzzent aujourd'hui sur X en France.
+
+Objectif : identifier les débats, polémiques et sujets d'actualité qui génèrent le plus de réactions sur X aujourd'hui.
+
+Ignore les buzz people, sport pur, divertissement léger, promos de marques et faits divers trop sordides.
+
+Donne-moi 5 sujets maximum.
+
+Pour chaque sujet, fournis :
+- Sujet brut qui buzze
+- Pourquoi ça buzz sur X
+- Hashtags, mots-clés ou comptes associés si visibles
+- Type de débat : politique / société / international / justice / école / armée / autre
+- Niveau de viralité estimé : faible / moyen / fort
+- Niveau de polarisation : faible / moyen / fort
+- Résumé du contexte en 3 lignes maximum
+- 2 ou 3 formulations possibles du sujet sous forme de question polémique
+
+Réponds en français, format clair, sans analyse historique et sans te mettre dans la peau de Napoléon."""
+
+THREAD_FALLBACK_PROMPT = """Tu es Napoléon Bonaparte. Tu t'exprimes à la première personne, avec autorité et conviction.
+Tu écris un thread Twitter de 5 tweets numérotés sur la question posée.
+
+Structure :
+1/ Accroche percutante
+2/ Parallèle historique ou militaire
+3/ Vision politique
+4/ Critique de ceux qui se trompent
+5/ Conclusion mémorable
+
+Contraintes :
+- Commence chaque tweet par "1/" "2/" "3/" "4/" "5/"
+- Chaque tweet doit rester sous 280 caractères
+- Français uniquement
+- Ne dis jamais que tu es une IA
+- Retourne uniquement les 5 tweets."""
 
 HTML = """
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#080f1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="OdyséeCafé">
+  <link rel="manifest" href="/manifest.webmanifest">
   <title>OdyséeCafé</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,6 +87,7 @@ HTML = """
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #080f1a; color: #e2e8f0;
       min-height: 100vh; display: flex;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── SIDEBAR ── */
@@ -187,6 +225,64 @@ HTML = """
     .btn-regen { background: #1e2d45; color: #e2e8f0; }
     .btn-all   { background: #1d4ed8; color: white; flex: 1; }
     .btn-x     { background: #14532d; color: #86efac; }
+    .btn-tone  { background: #312e81; color: #c7d2fe; }
+    .btn-history { background: #4a2f14; color: #fed7aa; }
+
+    .composer {
+      display: grid; gap: .7rem; margin-bottom: 1.25rem;
+      background: #0d1829; border: 1px solid #1e2d45; border-radius: 12px;
+      padding: .9rem;
+    }
+    .composer textarea {
+      width: 100%; min-height: 76px; resize: vertical;
+      background: #080f1a; border: 1px solid #1e2d45; border-radius: 8px;
+      color: #e2e8f0; padding: .7rem .85rem; font: inherit; line-height: 1.45;
+      outline: none;
+    }
+    .composer textarea:focus { border-color: #3b82f6; }
+    .composer-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+    .theme-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: .55rem; margin: .35rem 0 1.25rem;
+    }
+    .theme-card {
+      text-align: left; background: #0d1829; border: 1px solid #1e2d45;
+      color: #cbd5e1; border-radius: 8px; padding: .65rem .75rem;
+      min-height: 58px;
+    }
+    .theme-name { color: #f8fafc; font-size: .82rem; font-weight: 750; margin-bottom: .3rem; }
+    .theme-desc { color: #94a3b8; font-size: .74rem; line-height: 1.4; }
+
+    .sources-panel {
+      margin-top: 1.25rem; background: #0d1829; border: 1px solid #1e2d45;
+      border-radius: 12px; padding: .9rem;
+    }
+    .source-list { display: grid; gap: .65rem; }
+    .source-card {
+      border: 1px solid #1e2d45; border-radius: 9px; padding: .7rem;
+      background: #08111f;
+    }
+    .source-title { color: #f8fafc; font-size: .78rem; font-weight: 750; margin-bottom: .25rem; }
+    .source-meta { color: #64748b; font-size: .68rem; margin-bottom: .35rem; }
+    .source-excerpt { color: #94a3b8; font-size: .76rem; line-height: 1.45; }
+
+    .radar-panel {
+      display: grid; gap: 1rem;
+    }
+    .radar-help {
+      color: #94a3b8; font-size: .84rem; line-height: 1.55;
+      background: #0d1829; border: 1px solid #1e2d45; border-radius: 10px;
+      padding: .85rem 1rem;
+    }
+    .prompt-box, .grok-output {
+      width: 100%; min-height: 250px; resize: vertical;
+      background: #080f1a; border: 1px solid #1e2d45; border-radius: 10px;
+      color: #e2e8f0; padding: .9rem 1rem; font: inherit; line-height: 1.5;
+      outline: none;
+    }
+    .grok-output { min-height: 180px; }
+    .prompt-box:focus, .grok-output:focus { border-color: #3b82f6; }
+    .btn-grok { background: #14532d; color: #86efac; }
 
     /* ── CHAT TAB ── */
     .chat-window {
@@ -258,6 +354,229 @@ HTML = """
       padding: .45rem .85rem; font-size: .78rem; color: #94a3b8;
     }
     .stat-chip strong { color: #f1f5f9; }
+
+    @media (max-width: 760px) {
+      body {
+        display: block;
+        min-height: 100svh;
+        padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-height: 0;
+        height: auto;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: .75rem .75rem .65rem;
+        border-right: 0;
+        border-bottom: 1px solid #1e2d45;
+      }
+
+      .sidebar-logo {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: .8rem;
+        padding: 0 0 .65rem;
+        margin-bottom: .55rem;
+        font-size: 1rem;
+      }
+
+      .sidebar-logo span {
+        display: inline;
+        text-align: right;
+      }
+
+      .section-label {
+        display: none;
+      }
+
+      .sidebar .char-item {
+        display: inline-flex;
+        width: max-content;
+        min-height: 48px;
+        margin: 0 .4rem 0 0;
+        vertical-align: top;
+      }
+
+      .sidebar {
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+      }
+
+      .sidebar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .char-info {
+        max-width: 132px;
+      }
+
+      .char-era,
+      .char-badge {
+        display: none;
+      }
+
+      .main {
+        width: 100%;
+        max-width: none;
+        padding: 1rem .85rem 1.4rem;
+        gap: 1rem;
+      }
+
+      .char-header {
+        align-items: flex-start;
+      }
+
+      .char-avatar {
+        width: 46px;
+        height: 46px;
+      }
+
+      .char-header h1 {
+        font-size: 1.12rem;
+      }
+
+      .stats-bar {
+        gap: .5rem;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: .15rem;
+        scrollbar-width: none;
+      }
+
+      .stats-bar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .stat-chip {
+        flex: 0 0 auto;
+        padding: .42rem .65rem;
+      }
+
+      .tabs {
+        gap: .35rem;
+        overflow-x: auto;
+        border-bottom: 0;
+        padding-bottom: .15rem;
+        scrollbar-width: none;
+      }
+
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-btn {
+        flex: 0 0 auto;
+        min-height: 44px;
+        padding: .55rem .78rem;
+        border: 1px solid #1e2d45;
+        border-radius: 999px;
+        background: #0d1829;
+        margin-bottom: 0;
+        white-space: nowrap;
+      }
+
+      .tab-btn.active {
+        color: #080f1a;
+        background: #f59e0b;
+        border-color: #f59e0b;
+      }
+
+      .composer,
+      .question-box,
+      .tweet-box,
+      .sources-panel,
+      .radar-help,
+      .chat-window {
+        border-radius: 14px;
+      }
+
+      .composer {
+        padding: .75rem;
+      }
+
+      .composer textarea,
+      .prompt-box,
+      .grok-output {
+        font-size: 16px;
+      }
+
+      .composer-actions,
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .55rem;
+      }
+
+      button.act {
+        min-height: 46px;
+        padding: .55rem .75rem;
+      }
+
+      .theme-grid {
+        grid-template-columns: 1fr;
+        gap: .5rem;
+      }
+
+      .theme-card {
+        min-height: 0;
+      }
+
+      .tweet-row {
+        gap: .45rem;
+      }
+
+      .thread-line {
+        width: 18px;
+      }
+
+      .tweet-box {
+        padding: .75rem .82rem;
+        font-size: .88rem;
+      }
+
+      .tweet-footer {
+        min-height: 36px;
+      }
+
+      .btn-copy-one {
+        min-height: 34px;
+        padding: .25rem .75rem;
+      }
+
+      .prompt-box {
+        min-height: 220px;
+      }
+
+      .chat-window {
+        height: calc(100svh - 255px);
+        min-height: 430px;
+      }
+
+      .msg-bubble {
+        max-width: 86vw;
+      }
+
+      .chat-input-row {
+        padding: .65rem;
+      }
+
+      .chat-input {
+        height: 44px;
+        font-size: 16px;
+      }
+
+      .btn-send {
+        width: 44px;
+        height: 44px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -309,13 +628,35 @@ HTML = """
   <!-- TABS -->
   <div id="active-panel">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('thread', this)">🧵 Thread</button>
-      <button class="tab-btn"        onclick="switchTab('chat',   this)">💬 Chat</button>
+      <button class="tab-btn active" onclick="switchTab('thread', this)">🧵 Générateur de threads</button>
+      <button class="tab-btn"        onclick="switchTab('radar',  this)">📡 Radar Grok</button>
+      <button class="tab-btn"        onclick="switchTab('chat',   this)">💬 Chat secondaire</button>
     </div>
 
     <!-- THREAD TAB -->
     <div class="tab-panel active" id="tab-thread" style="padding-top:1.25rem">
-      <div class="label">Question du jour</div>
+      <div class="label">Sujet polémique à traiter</div>
+      <div class="composer">
+        <textarea id="manual-question" placeholder="Ex : Faut-il rétablir le service militaire obligatoire ?">{{ question }}</textarea>
+        <div class="composer-actions">
+          <button class="act btn-regen" onclick="doRegen('balanced', true, this)">Sujet du jour</button>
+          <button class="act btn-all" onclick="doRegen('balanced', false, this)">Générer ce sujet</button>
+          <button class="act btn-tone" onclick="doRegen('sharp', false, this)">Plus tranchant</button>
+          <button class="act btn-history" onclick="doRegen('historical', false, this)">Plus historique</button>
+        </div>
+      </div>
+
+      <div class="label">Thèmes Napoléon validés</div>
+      <div class="theme-grid">
+        {% for theme in editorial_themes %}
+        <div class="theme-card">
+          <div class="theme-name">{{ theme.name }}</div>
+          <div class="theme-desc">{{ theme.description }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="label">Question traitée</div>
       <div class="question-box" id="question">{{ question }}</div>
 
       <div class="label">Thread (modifiable avant copie)</div>
@@ -339,9 +680,51 @@ HTML = """
       </div>
 
       <div class="actions">
-        <button class="act btn-regen" onclick="doRegen()">🔄 Regénérer</button>
+        <button class="act btn-regen" onclick="doRegen('balanced', false, this)">🔄 Regénérer</button>
         <button class="act btn-all"   onclick="copyAll()">📋 Copier tout</button>
         <button class="act btn-x"     onclick="window.open('https://x.com/compose/post','_blank')">🐦 Ouvrir X</button>
+      </div>
+
+      <div class="sources-panel">
+        <div class="label">Sources RAG utilisées</div>
+        <div class="source-list" id="sources">
+          {% for source in sources %}
+          <div class="source-card">
+            <div class="source-title">{{ source.source }}</div>
+            <div class="source-meta">distance {{ source.distance }}</div>
+            <div class="source-excerpt">{{ source.excerpt }}</div>
+          </div>
+          {% else %}
+          <div class="source-card">
+            <div class="source-title">Aucune source disponible</div>
+            <div class="source-excerpt">La collection ChromaDB est vide. Lance l'ingestion du corpus pour réactiver le RAG.</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- RADAR GROK TAB -->
+    <div class="tab-panel" id="tab-radar" style="padding-top:1.25rem">
+      <div class="radar-panel">
+        <div>
+          <div class="label">Prompt Grok pour analyser X</div>
+          <div class="radar-help">
+            Copie ce prompt dans Grok. Grok récupère le buzz X brut ; OdyséeCafé transformera ensuite ta sélection en angle Napoléon.
+          </div>
+        </div>
+
+        <textarea class="prompt-box" id="grok-prompt" readonly>{{ grok_prompt }}</textarea>
+
+        <div class="actions">
+          <button class="act btn-grok" onclick="copyGrokPrompt(this)">📋 Copier le prompt Grok</button>
+          <button class="act btn-x" onclick="window.open('https://x.com/i/grok','_blank')">Ouvrir Grok</button>
+        </div>
+
+        <div>
+          <div class="label">Réponse Grok à coller ici</div>
+          <textarea class="grok-output" id="grok-output" placeholder="Colle ici la réponse de Grok. Prochaine étape : transformer cette réponse en 5 sujets Napoléon exploitables."></textarea>
+        </div>
       </div>
     </div>
 
@@ -370,7 +753,7 @@ HTML = """
 
 <script>
   // ── CHARACTER DATA (mirrors Python) ──
-  const CHARS = {{ characters_json }};
+  const CHARS = {{ characters_json | safe }};
 
   function selectChar(id) {
     const c = CHARS.find(x => x.id === id);
@@ -429,24 +812,70 @@ HTML = """
     });
   }
 
-  function doRegen() {
-    const btn = document.querySelector('.btn-regen');
+  function renderSources(sources) {
+    const root = document.getElementById('sources');
+    root.innerHTML = '';
+    (sources || []).forEach((s) => {
+      const card = document.createElement('div');
+      card.className = 'source-card';
+      card.innerHTML = `
+        <div class="source-title">${String(s.source || '').replace(/</g,'&lt;')}</div>
+        <div class="source-meta">distance ${s.distance ?? '—'}</div>
+        <div class="source-excerpt">${String(s.excerpt || '').replace(/</g,'&lt;')}</div>`;
+      root.appendChild(card);
+    });
+    if (!sources || sources.length === 0) {
+      const card = document.createElement('div');
+      card.className = 'source-card';
+      card.innerHTML = `
+        <div class="source-title">Aucune source disponible</div>
+        <div class="source-excerpt">La collection ChromaDB est vide. Lance l'ingestion du corpus pour réactiver le RAG.</div>`;
+      root.appendChild(card);
+    }
+  }
+
+  function doRegen(mode = 'balanced', useTrending = false, btn = null) {
+    btn = btn || document.querySelector('.btn-regen');
+    const manualQuestion = document.getElementById('manual-question').value.trim();
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Génération…';
-    fetch('/api/thread', {method: 'POST'})
+    fetch('/api/thread', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: useTrending ? '' : manualQuestion, mode}),
+    })
       .then(r => r.json())
       .then(d => {
         if (d.ok) {
           document.getElementById('question').textContent = d.question;
+          document.getElementById('manual-question').value = d.question;
           d.tweets.forEach((t, idx) => {
             const i = idx + 1;
             document.getElementById('tweet-' + i).innerText = t;
             updateCount(i);
           });
+          renderSources(d.sources);
         } else { alert('Erreur : ' + d.error); }
         btn.disabled = false;
-        btn.innerHTML = '🔄 Regénérer';
+        btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
       });
+  }
+
+  document.querySelectorAll('.composer .act, .actions .btn-regen').forEach((btn) => {
+    btn.dataset.originalLabel = btn.innerHTML;
+  });
+
+  function copyGrokPrompt(btn) {
+    const prompt = document.getElementById('grok-prompt').value;
+    navigator.clipboard.writeText(prompt).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Prompt copié';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.classList.remove('copied');
+      }, 1800);
+    });
   }
 
   // ── CHAT ──
@@ -527,6 +956,11 @@ HTML = """
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   }
 </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+</script>
 </body>
 </html>
 """
@@ -536,21 +970,69 @@ HTML = """
 
 def _get_thread_state():
     if not _thread_state["question"]:
-        q = get_daily_polemic_question()
+        q = "Colle ici un sujet issu du Radar Grok."
         _thread_state["question"] = q
-        _thread_state["tweets"]   = napoleon_thread(q)
+        _thread_state["tweets"] = [""] * 5
+        _thread_state["sources"] = []
     return _thread_state
+
+
+def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
+    import os
+    import re
+    import httpx
+    from openai import OpenAI
+    from config import openrouter_api_key
+
+    style = {
+        "sharp": "Ton plus tranchant, polémique mais publiable.",
+        "historical": "Ton plus historique, avec un parallèle clair avec ton époque.",
+    }.get(mode, "Ton équilibré : incarné, clair, éditorial.")
+
+    llm = OpenAI(
+        api_key=openrouter_api_key() or "missing-key",
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={"X-Title": os.getenv("OPENROUTER_APP_NAME", "odyseecafe")},
+        http_client=httpx.Client(verify=False),
+    )
+    response = llm.chat.completions.create(
+        model=os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
+        messages=[
+            {"role": "system", "content": THREAD_FALLBACK_PROMPT},
+            {"role": "user", "content": f"Question : {question}\n\n{style}"},
+        ],
+        temperature=0.85,
+        max_tokens=700,
+    )
+    raw = (response.choices[0].message.content or "").strip()
+    tweets = re.findall(r"(?ms)(?:^|\n)\s*(\d+/\s.*?)(?=\n\s*\d+/|\Z)", raw)
+    tweets = [re.sub(r"\s+", " ", t).strip() for t in tweets if t.strip()]
+    if len(tweets) < 5:
+        tweets = [line.strip() for line in raw.splitlines() if line.strip()][:5]
+    result = []
+    for t in tweets[:5]:
+        if len(t) > 280:
+            cut = t.rfind(" ", 0, 278)
+            t = (t[:cut] if cut != -1 else t[:278]) + "…"
+        result.append(t)
+    while len(result) < 5:
+        result.append(f"{len(result) + 1}/ — Napoléon Bonaparte")
+    return {"tweets": result, "sources": [], "mode": mode}
 
 
 @app.route("/")
 def index():
     import json
-    from query import collection
 
     state       = _get_thread_state()
-    chunk_count = collection.count()
+    chunk_count = 0
+    if not os.getenv("VERCEL"):
+        try:
+            from query import collection
+            chunk_count = collection.count()
+        except Exception:
+            chunk_count = 0
 
-    import os
     model = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
 
     return render_template_string(
@@ -560,19 +1042,67 @@ def index():
         active_id       = "napoleon",
         question        = state["question"],
         tweets          = list(enumerate(state["tweets"], 1)),
+        sources         = state["sources"],
+        editorial_themes= list_editorial_themes("napoleon"),
+        grok_prompt     = GROK_RADAR_PROMPT,
         chunk_count     = chunk_count,
         model           = model,
     )
 
 
+@app.route("/manifest.webmanifest")
+def manifest():
+    return jsonify(
+        name="OdyséeCafé",
+        short_name="OdyséeCafé",
+        start_url="/",
+        display="standalone",
+        background_color="#080f1a",
+        theme_color="#080f1a",
+        orientation="portrait",
+        icons=[],
+    )
+
+
+@app.route("/sw.js")
+def service_worker():
+    js = """
+const CACHE = 'odyseecafe-shell-v1';
+const ASSETS = ['/', '/manifest.webmanifest'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+});
+"""
+    return Response(js, mimetype="application/javascript")
+
+
 @app.route("/api/thread", methods=["POST"])
 def api_thread():
     try:
-        q      = get_daily_polemic_question()
-        tweets = napoleon_thread(q)
+        data = request.get_json(silent=True) or {}
+        q = (data.get("question") or "").strip()
+        mode = (data.get("mode") or "balanced").strip()
+        if mode not in {"balanced", "sharp", "historical"}:
+            mode = "balanced"
+        if not q:
+            from twitter_trending import get_daily_polemic_question
+            q = get_daily_polemic_question()
+        try:
+            from daily_napoleon_tweet import napoleon_thread_result
+            result = napoleon_thread_result(q, mode=mode)
+        except Exception:
+            result = _fallback_thread_result(q, mode=mode)
         _thread_state["question"] = q
-        _thread_state["tweets"]   = tweets
-        return jsonify(ok=True, question=q, tweets=tweets)
+        _thread_state["tweets"]   = result["tweets"]
+        _thread_state["sources"]  = result["sources"]
+        _thread_state["mode"]     = result["mode"]
+        return jsonify(ok=True, question=q, tweets=result["tweets"], sources=result["sources"], mode=result["mode"])
     except Exception as e:
         return jsonify(ok=False, error=str(e))
 
@@ -584,6 +1114,7 @@ def api_chat():
     if not msg:
         return jsonify(ok=False, error="Message vide")
     try:
+        from chat import chat as napoleon_chat
         reply = napoleon_chat(msg)
         return jsonify(ok=True, reply=reply)
     except Exception as e:
@@ -592,7 +1123,8 @@ def api_chat():
 
 if __name__ == "__main__":
     import webbrowser, threading
-    port = 5000
+    port = int(os.getenv("PORT", "5000"))
+    host = os.getenv("HOST", "0.0.0.0")
     threading.Timer(1.2, lambda: webbrowser.open(f"http://localhost:{port}")).start()
     print(f"\n[OdyséeCafé] http://localhost:{port}\n")
-    app.run(host="127.0.0.1", port=port, debug=False)
+    app.run(host=host, port=port, debug=False)

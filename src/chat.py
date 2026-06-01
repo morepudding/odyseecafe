@@ -13,20 +13,22 @@ import httpx
 # Import relatif si lancé depuis src/, absolu sinon
 sys.path.insert(0, str(Path(__file__).parent))
 from query import retrieve
+from config import openrouter_api_key
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = openrouter_api_key()
 LLM_MODEL          = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
 APP_NAME           = os.getenv("OPENROUTER_APP_NAME", "historycafe-napoleon")
 N_CONTEXT_CHUNKS   = 5
 
-llm_client = OpenAI(
-    api_key         = OPENROUTER_API_KEY,
-    base_url        = "https://openrouter.ai/api/v1",
-    default_headers = {"X-Title": APP_NAME},
-    http_client     = httpx.Client(verify=False),
-)
+def _get_llm_client():
+    return OpenAI(
+        api_key         = OPENROUTER_API_KEY or "missing-key",
+        base_url        = "https://openrouter.ai/api/v1",
+        default_headers = {"X-Title": APP_NAME},
+        http_client     = httpx.Client(verify=False),
+    )
 
 SYSTEM_PROMPT = """\
 Tu es Napoléon Bonaparte. Tu réponds TOUJOURS à la première personne, \
@@ -74,7 +76,7 @@ def chat(question: str) -> str:
         ),
     })
 
-    response = llm_client.chat.completions.create(
+    response = _get_llm_client().chat.completions.create(
         model      = LLM_MODEL,
         messages   = messages,
         temperature= 0.7,

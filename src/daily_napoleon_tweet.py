@@ -31,10 +31,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from query            import retrieve
 from twitter_trending import get_daily_polemic_question
 from twitter_bot      import post_napoleon_response
+from config           import openrouter_api_key
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = openrouter_api_key()
 LLM_MODEL          = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
 APP_NAME           = os.getenv("OPENROUTER_APP_NAME", "historycafe-napoleon")
 N_CONTEXT_CHUNKS   = 5
@@ -56,7 +57,7 @@ Réponds en français uniquement. Ne révèle jamais que tu es une IA.\
 
 def _init_llm() -> OpenAI:
     return OpenAI(
-        api_key         = OPENROUTER_API_KEY,
+        api_key         = OPENROUTER_API_KEY or "missing-key",
         base_url        = "https://openrouter.ai/api/v1",
         default_headers = {"X-Title": APP_NAME},
         http_client     = httpx.Client(verify=False),
@@ -86,17 +87,51 @@ CONTRAINTES :
 """
 
 
-def napoleon_thread(question: str) -> list[str]:
+def _style_instruction(mode: str = "balanced") -> str:
+    if mode == "sharp":
+        return (
+            "Mode éditorial : plus tranchant. Donne une opinion nette, polémique, "
+            "mais reste publiable et historiquement défendable."
+        )
+    if mode == "historical":
+        return (
+            "Mode éditorial : plus historique. Appuie davantage chaque tweet sur "
+            "une référence, une expérience politique ou militaire, sans devenir scolaire."
+        )
+    return (
+        "Mode éditorial : équilibré. Le thread doit être incarné, polémique, "
+        "clair et publiable après validation humaine."
+    )
+
+
+def _format_sources(chunks: list[dict]) -> list[dict]:
+    sources = []
+    seen = set()
+    for chunk in chunks:
+        source = chunk["source"]
+        if source in seen:
+            continue
+        seen.add(source)
+        sources.append({
+            "source": source,
+            "distance": round(float(chunk["distance"]), 4),
+            "excerpt": chunk["text"][:260].replace("\n", " ").strip(),
+        })
+    return sources
+
+
+def napoleon_thread_result(question: str, mode: str = "balanced") -> dict:
     """
     Génère un thread de 5 tweets Napoléon sur la question, en utilisant le RAG.
-    Retourne une liste de 5 strings.
+    Retourne les tweets et les sources utilisées pour validation éditoriale.
     """
     llm    = _init_llm()
     chunks = retrieve(question, n_results=N_CONTEXT_CHUNKS)
+    style_instruction = _style_instruction(mode)
 
     context = "\n\n---\n\n".join(
         f"[{c['source']}]\n{c['text'][:400]}" for c in chunks[:5]
-    )
+    ) or "Aucun extrait RAG disponible : reste prudent, évite d'inventer des citations précises."
 
     messages = [
         {"role": "system", "content": THREAD_SYSTEM_PROMPT},
@@ -106,6 +141,7 @@ def napoleon_thread(question: str) -> list[str]:
                 f"Voici des extraits de tes propres écrits pour t'inspirer :\n\n{context}\n\n"
                 f"---\n\n"
                 f"Question : {question}\n\n"
+                f"{style_instruction}\n\n"
                 f"Écris le thread de 5 tweets."
             ),
         },
@@ -119,10 +155,11 @@ def napoleon_thread(question: str) -> list[str]:
     )
     raw = (response.choices[0].message.content or "").strip()
 
-    # Parse : on extrait les lignes commençant par 1/ 2/ 3/ 4/ 5/
+    # Parse : on extrait les blocs commençant par 1/ 2/ 3/ 4/ 5/.
+    # Certains modèles ajoutent des retours ligne dans un tweet : on les replie.
     import re
-    tweets = re.findall(r'(?:^|\n)\s*(\d+/[^\n]+)', raw)
-    tweets = [t.strip() for t in tweets if t.strip()]
+    tweets = re.findall(r'(?ms)(?:^|\n)\s*(\d+/\s.*?)(?=\n\s*\d+/|\Z)', raw)
+    tweets = [re.sub(r"\s+", " ", t).strip() for t in tweets if t.strip()]
 
     # Sécurité : si le LLM n'a pas respecté le format, on découpe naïvement
     if len(tweets) < 5:
@@ -141,14 +178,17 @@ def napoleon_thread(question: str) -> list[str]:
     while len(result) < 5:
         result.append(f"{len(result)+1}/ — Napoléon Bonaparte")
 
-    return result
+    return {"tweets": result, "sources": _format_sources(chunks), "mode": mode}
+
+
+def napoleon_thread(question: str, mode: str = "balanced") -> list[str]:
+    """Rétrocompatibilité : retourne seulement la liste des tweets."""
+    return napoleon_thread_result(question, mode=mode)["tweets"]
 
 
 def napoleon_short_answer(question: str) -> str:
     """Retourne le premier tweet du thread (rétrocompatibilité)."""
     return napoleon_thread(question)[0]
-
-    return answer
 
 
 def run(dry_run: bool = False, forced_question: str | None = None) -> None:

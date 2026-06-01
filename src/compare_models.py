@@ -7,13 +7,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 import httpx
+from config import openrouter_api_key
 
 sys.path.insert(0, str(Path(__file__).parent))
 from query import retrieve
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = openrouter_api_key()
 APP_NAME           = os.getenv("OPENROUTER_APP_NAME", "historycafe-napoleon")
 
 MODELS = [

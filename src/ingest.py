@@ -8,10 +8,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 import chromadb
 import httpx
+from config import openrouter_api_key
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
-OPENROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
+OPENROUTER_API_KEY = openrouter_api_key()
 EMBED_MODEL        = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
 CORPUS_DIR         = Path(__file__).parent.parent / "corpus"
 CHROMA_DIR         = Path(__file__).parent.parent / "chroma_db"
