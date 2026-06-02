@@ -205,6 +205,169 @@ En 5 a 8 lignes : ce qui s'est passe, ou, quand, qui est concerne, pourquoi c'es
   Pertinence au sujet : /5
   Potentiel buzz : /5"""
 
+MOCK_DOSSIER = """# Dossier editorial mock
+
+## Sujet
+- Question : Apres un scandale dans une institution scolaire, faut-il renforcer le controle de l'Etat ?
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+- Origine : Sujet de test pour visualiser la constitution d'un dossier.
+  Pertinence au sujet : 3/5
+  Potentiel buzz : 1/5
+- Date de collecte : Mock local, non source.
+  Pertinence au sujet : 2/5
+  Potentiel buzz : 1/5
+
+## Resume factuel court
+- Resume : Une affaire test met en scene une institution accusee d'avoir laisse durer des alertes. Le debat porte moins sur un fait isole que sur la chaine de responsabilite : direction, tutelle, controle public, silence des acteurs et reaction politique.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+
+## 1. Faits chauds
+- Date / lieu : Evenement recent, dans un etablissement scolaire fictif.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 2/5
+- Declencheur : Publication d'un temoignage et reprise mediatique.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+- Dernier etat connu : Des responsables demandent une enquete administrative.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Ce qui est confirme : Des alertes auraient existe avant la polemique publique.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+- Ce qui reste incertain : Qui savait quoi, depuis quand, et avec quel pouvoir d'action.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+
+## 2. Precedents historiques
+- Cas comparable 1 : Une ancienne affaire ou l'administration a ete accusee d'avoir reagi trop tard.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Cas comparable 2 : Une crise similaire ayant mene a une reforme de controle.
+  Pertinence au sujet : 3/5
+  Potentiel buzz : 2/5
+- Ancienne promesse / ancien scandale / ancienne reforme : Promesse de transparence deja formulee apres une crise precedente.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+
+## 3. Dispositifs et institutions en place
+- Institutions responsables : Direction, autorite de tutelle, inspection, ministere.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 3/5
+- Procedures existantes : Signalement, enquete interne, inspection, suites disciplinaires.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 2/5
+- Controles prevus : Audits, rapports, inspections periodiques.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 2/5
+- Failles possibles : Trop de discretion locale, lenteur administrative, peur du scandale.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+
+## 4. Lois, reglements, decisions publiques
+- Texte applicable : Cadre general de protection des mineurs et obligation de signalement.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 2/5
+- Decision recente : Annonce d'une mission de controle.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Rapport / enquete / commission : Rapport attendu ou deja demande par l'autorite publique.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Ce que le droit permet deja : Sanctionner, fermer, inspecter, transmettre a la justice.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+
+## 5. Declarations politiques ou polemiques
+- Gouvernement : Promet de ne laisser aucune zone grise.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Opposition : Accuse l'Etat d'avoir protege une institution au lieu de proteger les victimes.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+- Experts / syndicats / associations : Demandent des controles independants et des suites judiciaires.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Contradictions reperees : Les memes acteurs disent faire confiance aux institutions puis reclament une surveillance totale.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+
+## 6. Comparaisons mediatiques
+- Traitement mediatique dominant : Recit centre sur le scandale, les silences et la responsabilite politique.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 4/5
+- Differences selon les camps : Certains parlent de faillite morale, d'autres de cas particulier.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 4/5
+- Deux poids deux mesures possible : Severite variable selon que l'institution touche l'Etat, le prive ou le religieux.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+
+## 7. Contre-exemples
+- Cas similaire mieux gere : Etablissement ayant declenche rapidement un signalement externe.
+  Pertinence au sujet : 3/5
+  Potentiel buzz : 2/5
+- Politique qui a fonctionne : Controle independant avec publication rapide des conclusions.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 2/5
+- Element qui nuance l'accusation principale : Tout controle d'Etat peut aussi devenir bureaucratique et inefficace.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 3/5
+
+## 8. Acteurs impliques
+- Responsables directs : Direction locale et autorites chargees du suivi.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+- Institutions : Etablissement, inspection, ministere, justice.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 3/5
+- Victimes / publics concernes : Eleves, familles, personnels ayant alerte.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+- Acteurs silencieux : Ceux qui avaient interet a eviter une crise publique.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 5/5
+- Qui gagne / qui perd politiquement : Gagnent ceux qui incarnent l'autorite ; perdent ceux associes au silence.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 4/5
+
+## 9. Chiffres simples et bilans
+- Nombre de personnes concernees : A renseigner seulement si source solide.
+  Pertinence au sujet : 4/5
+  Potentiel buzz : 3/5
+- Couts / budgets : Peu utile sauf si le financement public est au coeur du debat.
+  Pertinence au sujet : 2/5
+  Potentiel buzz : 2/5
+- Evolution dans le temps : Montrer si les alertes se sont accumulees.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+- Ordre de grandeur utile : Nombre d'alertes, delai de reaction, niveau de controle.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 4/5
+
+## Sources
+- [S1] Source mock - a remplacer par article ou rapport - URL - date
+  Pertinence au sujet : 1/5
+  Potentiel buzz : 1/5
+- [S2] Source mock - a remplacer par declaration officielle - URL - date
+  Pertinence au sujet : 1/5
+  Potentiel buzz : 1/5
+- [S3] Source mock - a remplacer par archive comparable - URL - date
+  Pertinence au sujet : 1/5
+  Potentiel buzz : 1/5
+
+## Points de vigilance
+- Ne pas affirmer : Ne pas attribuer de faute personnelle sans source solide.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 1/5
+- Faits a verifier : Dates, noms, nombre d'alertes, contenu exact des decisions.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 2/5
+- Risque de diffamation / accusation trop directe : Eleve si le thread transforme une question de responsabilite en accusation nominative.
+  Pertinence au sujet : 5/5
+  Potentiel buzz : 1/5"""
+
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
     {"id": "jeanne",        "name": "Jeanne d'Arc",       "emoji": "🛡️", "active": True,  "era": "1412 – 1431"},
@@ -414,9 +577,6 @@ HTML = """
       font-size: .66rem; font-weight: 750; letter-spacing: .08em;
       text-transform: uppercase; color: #64748b; margin-bottom: .35rem;
     }
-    .brief-grid { display: grid; gap: .7rem; }
-    .brief-grid textarea { min-height: 110px; }
-    #editorial-dossier { min-height: 190px; }
     #editorial-angle { min-height: 98px; }
     .theme-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -707,10 +867,6 @@ HTML = """
         padding: .25rem .75rem;
       }
 
-      #editorial-dossier {
-        min-height: 170px;
-      }
-
       .chat-window {
         height: calc(100svh - 255px);
         min-height: 430px;
@@ -799,15 +955,11 @@ HTML = """
           <textarea id="manual-question" placeholder="Ex : Faut-il rétablir le service militaire obligatoire ?">{{ question }}</textarea>
         </div>
 
-        <div class="brief-grid">
-          <div>
-            <div class="field-label">Dossier</div>
-            <textarea id="editorial-dossier" placeholder="{{ dossier_placeholder }}">{{ dossier }}</textarea>
-          </div>
-          <div>
-            <div class="field-label">Angle</div>
-            <textarea id="editorial-angle" placeholder="Émotion à provoquer, question à laisser au lecteur, tension morale ou politique à faire sentir.">{{ angle }}</textarea>
-          </div>
+        <textarea id="editorial-dossier" hidden>{{ dossier }}</textarea>
+
+        <div>
+          <div class="field-label">Angle</div>
+          <textarea id="editorial-angle" placeholder="Émotion à provoquer, question à laisser au lecteur, tension morale ou politique à faire sentir.">{{ angle }}</textarea>
         </div>
 
         <div class="composer-actions">
@@ -1238,13 +1390,73 @@ DOSSIER_HTML = """
     .collect-title { color: #f8fafc; font-weight: 800; margin-bottom: .25rem; }
     .collect-intent { color: #94a3b8; margin-top: .25rem; }
     textarea {
-      width: 100%; resize: vertical; min-height: 210px;
+      width: 100%; resize: vertical; min-height: 120px;
       background: #08111f; border: 1px solid #1e2d45; border-radius: 8px;
       color: #e2e8f0; padding: .85rem; font: inherit; line-height: 1.5;
       outline: none;
     }
     textarea:focus { border-color: #3b82f6; }
     #angle { min-height: 120px; }
+    .priority-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: .55rem;
+    }
+    .priority-card {
+      display: grid; gap: .45rem; align-content: start;
+      background: #08111f; border: 1px solid #243654; border-radius: 8px;
+      padding: .75rem; min-height: 108px;
+    }
+    .priority-kicker {
+      color: #f59e0b; font-size: .66rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .priority-title { color: #f8fafc; font-size: .88rem; font-weight: 800; line-height: 1.25; }
+    .priority-body { color: #cbd5e1; font-size: .78rem; line-height: 1.4; }
+    .dossier-view { display: grid; gap: .7rem; }
+    .dossier-section {
+      background: #08111f; border: 1px solid #1e2d45; border-radius: 8px;
+      overflow: hidden;
+    }
+    .dossier-section[open] { border-color: #2b4268; }
+    .dossier-section summary {
+      list-style: none; cursor: pointer; display: flex; justify-content: space-between;
+      align-items: center; gap: .75rem; padding: .85rem;
+    }
+    .dossier-section summary::-webkit-details-marker { display: none; }
+    .section-title { color: #f8fafc; font-weight: 850; line-height: 1.25; }
+    .section-meta {
+      flex: 0 0 auto; color: #94a3b8; background: #0d1829;
+      border: 1px solid #1e2d45; border-radius: 999px;
+      padding: .22rem .55rem; font-size: .7rem; font-weight: 750;
+    }
+    .section-body {
+      display: grid; gap: .55rem; padding: 0 .75rem .75rem;
+    }
+    .section-note {
+      color: #94a3b8; font-size: .82rem; line-height: 1.45;
+      border-left: 2px solid #334155; padding-left: .65rem;
+    }
+    .dossier-item {
+      display: grid; gap: .55rem; background: #0d1829;
+      border: 1px solid #1e2d45; border-radius: 8px; padding: .75rem;
+    }
+    .dossier-item.priority-high { border-color: #365f3f; background: #0d1f1b; }
+    .dossier-item.priority-mid { border-color: #4a3f24; }
+    .item-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: .7rem;
+    }
+    .item-title { color: #f8fafc; font-weight: 800; font-size: .9rem; line-height: 1.25; }
+    .item-body { color: #cbd5e1; font-size: .82rem; line-height: 1.45; }
+    .score-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .score-chip {
+      display: inline-flex; align-items: center; gap: .28rem; min-height: 28px;
+      border-radius: 999px; padding: .18rem .55rem; font-size: .72rem;
+      font-weight: 800; border: 1px solid #1e2d45; background: #08111f;
+    }
+    .score-chip.rel { color: #bfdbfe; border-color: #1d4ed8; }
+    .score-chip.buzz { color: #fed7aa; border-color: #9a521c; }
+    .score-value { color: #f8fafc; }
     .actions { display: flex; gap: .7rem; flex-wrap: wrap; }
     button, .button-link {
       border: 0; border-radius: 8px; padding: .65rem 1rem;
@@ -1268,6 +1480,9 @@ DOSSIER_HTML = """
       .page { width: 100%; padding: 1rem .85rem 1.4rem; }
       .topbar { align-items: flex-start; }
       .actions { display: grid; grid-template-columns: 1fr; }
+      .priority-strip { grid-template-columns: 1fr; }
+      .dossier-section summary { align-items: flex-start; }
+      .item-head { display: grid; gap: .5rem; }
       textarea { font-size: 16px; }
     }
   </style>
@@ -1344,7 +1559,51 @@ DOSSIER_HTML = """
 
     <section class="panel">
       <div class="label">Dossier</div>
-      <textarea id="dossier" placeholder="{{ dossier_placeholder }}">{{ dossier }}</textarea>
+      <textarea id="dossier" hidden>{{ dossier }}</textarea>
+
+      <div class="priority-strip">
+        {% for item in dossier_top_items %}
+        <article class="priority-card">
+          <div class="priority-kicker">{{ item.section }}</div>
+          <div class="priority-title">{{ item.title }}</div>
+          {% if item.body %}<div class="priority-body">{{ item.body }}</div>{% endif %}
+          <div class="score-row">
+            <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance }}/5</span></span>
+            <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz }}/5</span></span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="dossier-view">
+        {% for section in dossier_sections %}
+        <details class="dossier-section" {% if loop.index <= 3 %}open{% endif %}>
+          <summary>
+            <span class="section-title">{{ section.title }}</span>
+            <span class="section-meta">{{ section["items"]|length }} éléments</span>
+          </summary>
+          <div class="section-body">
+            {% for note in section.notes %}
+            <div class="section-note">{{ note }}</div>
+            {% endfor %}
+            {% for item in section["items"] %}
+            <article class="dossier-item {{ item.priority_class }}">
+              <div class="item-head">
+                <div>
+                  <div class="item-title">{{ item.title }}</div>
+                  {% if item.body %}<div class="item-body">{{ item.body }}</div>{% endif %}
+                </div>
+                <div class="score-row">
+                  <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance or "-" }}/5</span></span>
+                  <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz or "-" }}/5</span></span>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </details>
+        {% endfor %}
+      </div>
     </section>
 
     <section class="panel">
@@ -1408,6 +1667,85 @@ DOSSIER_HTML = """
 
 
 # ── ROUTES ────────────────────────────────────────────────────────────────────
+
+def _score_from_line(line: str) -> int | None:
+    import re
+
+    match = re.search(r":\s*([0-5])\s*/\s*5", line)
+    return int(match.group(1)) if match else None
+
+
+def _finish_dossier_item(section: dict | None, item: dict | None) -> None:
+    if not section or not item:
+        return
+    relevance = item.get("relevance")
+    buzz = item.get("buzz")
+    total = (relevance or 0) + (buzz or 0)
+    if total >= 8:
+        item["priority_class"] = "priority-high"
+    elif total >= 5:
+        item["priority_class"] = "priority-mid"
+    else:
+        item["priority_class"] = "priority-low"
+    section["items"].append(item)
+
+
+def _parse_dossier_for_view(dossier: str) -> tuple[list[dict], list[dict]]:
+    sections: list[dict] = []
+    current_section: dict | None = None
+    current_item: dict | None = None
+
+    for raw_line in (dossier or "").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("# "):
+            continue
+        if line.startswith("## "):
+            _finish_dossier_item(current_section, current_item)
+            current_item = None
+            current_section = {"title": line[3:].strip(), "notes": [], "items": []}
+            sections.append(current_section)
+            continue
+        if line.startswith("- "):
+            _finish_dossier_item(current_section, current_item)
+            if current_section is None:
+                current_section = {"title": "Dossier", "notes": [], "items": []}
+                sections.append(current_section)
+            item_text = line[2:].strip()
+            if " : " in item_text:
+                title, body = item_text.split(" : ", 1)
+            elif item_text.endswith(":"):
+                title, body = item_text[:-1], ""
+            else:
+                title, body = item_text, ""
+            current_item = {
+                "section": current_section["title"],
+                "title": title.strip(),
+                "body": body.strip(),
+                "relevance": None,
+                "buzz": None,
+                "priority_class": "priority-low",
+            }
+            continue
+        if line.startswith("Pertinence au sujet"):
+            if current_item is not None:
+                current_item["relevance"] = _score_from_line(line)
+            continue
+        if line.startswith("Potentiel buzz"):
+            if current_item is not None:
+                current_item["buzz"] = _score_from_line(line)
+            continue
+        if current_item is not None:
+            current_item["body"] = " ".join(part for part in [current_item["body"], line] if part)
+        elif current_section is not None:
+            current_section["notes"].append(line)
+
+    _finish_dossier_item(current_section, current_item)
+    top_items = sorted(
+        [item for section in sections for item in section["items"] if item.get("relevance") is not None],
+        key=lambda item: ((item.get("relevance") or 0) + (item.get("buzz") or 0), item.get("buzz") or 0),
+        reverse=True,
+    )[:4]
+    return sections, top_items
 
 def _get_thread_state():
     if not _thread_state["question"]:
@@ -1585,10 +1923,11 @@ def dossier_page():
     current_topic = _load_current_topic() or _get_thread_state()
     question = (current_topic or {}).get("question") or "Aucun sujet du jour."
     sources = (current_topic or {}).get("sources") or []
-    dossier = (current_topic or {}).get("dossier") or ""
+    dossier = (current_topic or {}).get("dossier") or MOCK_DOSSIER
     angle = (current_topic or {}).get("angle") or ""
     origin = (current_topic or {}).get("origin") or "manual"
     character = (current_topic or {}).get("character") or "napoleon"
+    dossier_sections, dossier_top_items = _parse_dossier_for_view(dossier)
 
     return render_template_string(
         DOSSIER_HTML,
@@ -1598,6 +1937,8 @@ def dossier_page():
         sources_json=json.dumps(sources, ensure_ascii=False),
         character_json=json.dumps(character, ensure_ascii=False),
         dossier=dossier,
+        dossier_sections=dossier_sections,
+        dossier_top_items=dossier_top_items,
         dossier_placeholder=DOSSIER_PLACEHOLDER,
         angle=angle,
         origin=origin,
