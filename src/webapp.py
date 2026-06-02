@@ -41,6 +41,170 @@ _thread_state = {
     "character": "napoleon",
 }
 
+DOSSIER_PLACEHOLDER = """# Dossier editorial
+
+## Sujet
+- Question :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Origine :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Date de collecte :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## Resume factuel court
+En 5 a 8 lignes : ce qui s'est passe, ou, quand, qui est concerne, pourquoi c'est polemique.
+- Resume :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 1. Faits chauds
+- Date / lieu :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Declencheur :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Dernier etat connu :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Ce qui est confirme :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Ce qui reste incertain :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 2. Precedents historiques
+- Cas comparable 1 :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Cas comparable 2 :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Ancienne promesse / ancien scandale / ancienne reforme :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 3. Dispositifs et institutions en place
+- Institutions responsables :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Procedures existantes :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Controles prevus :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Failles possibles :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 4. Lois, reglements, decisions publiques
+- Texte applicable :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Decision recente :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Rapport / enquete / commission :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Ce que le droit permet deja :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 5. Declarations politiques ou polemiques
+- Gouvernement :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Opposition :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Experts / syndicats / associations :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Contradictions reperees :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 6. Comparaisons mediatiques
+- Traitement mediatique dominant :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Differences selon les camps :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Deux poids deux mesures possible :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 7. Contre-exemples
+- Cas similaire mieux gere :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Politique qui a fonctionne :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Element qui nuance l'accusation principale :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 8. Acteurs impliques
+- Responsables directs :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Institutions :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Victimes / publics concernes :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Acteurs silencieux :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Qui gagne / qui perd politiquement :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## 9. Chiffres simples et bilans
+- Nombre de personnes concernees :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Couts / budgets :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Evolution dans le temps :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Ordre de grandeur utile :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## Sources
+- [S1] Titre - media/institution - URL - date
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- [S2] Titre - media/institution - URL - date
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- [S3] Titre - media/institution - URL - date
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
+## Points de vigilance
+- Ne pas affirmer :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Faits a verifier :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Risque de diffamation / accusation trop directe :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5"""
+
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
     {"id": "jeanne",        "name": "Jeanne d'Arc",       "emoji": "🛡️", "active": True,  "era": "1412 – 1431"},
@@ -638,7 +802,7 @@ HTML = """
         <div class="brief-grid">
           <div>
             <div class="field-label">Dossier</div>
-            <textarea id="editorial-dossier" placeholder="Contexte factuel, chronologie, précédents comparables, contre-exemples, lois, déclarations, sources...">{{ dossier }}</textarea>
+            <textarea id="editorial-dossier" placeholder="{{ dossier_placeholder }}">{{ dossier }}</textarea>
           </div>
           <div>
             <div class="field-label">Angle</div>
@@ -1180,7 +1344,7 @@ DOSSIER_HTML = """
 
     <section class="panel">
       <div class="label">Dossier</div>
-      <textarea id="dossier" placeholder="Le dossier éditorial apparaîtra ici.">{{ dossier }}</textarea>
+      <textarea id="dossier" placeholder="{{ dossier_placeholder }}">{{ dossier }}</textarea>
     </section>
 
     <section class="panel">
@@ -1405,6 +1569,7 @@ def index():
         active_id       = "napoleon",
         question        = state["question"],
         dossier         = state["dossier"],
+        dossier_placeholder = DOSSIER_PLACEHOLDER,
         angle           = state["angle"],
         tweets          = list(enumerate(state["tweets"], 1)),
         sources         = state["sources"],
@@ -1433,6 +1598,7 @@ def dossier_page():
         sources_json=json.dumps(sources, ensure_ascii=False),
         character_json=json.dumps(character, ensure_ascii=False),
         dossier=dossier,
+        dossier_placeholder=DOSSIER_PLACEHOLDER,
         angle=angle,
         origin=origin,
     )
