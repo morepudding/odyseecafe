@@ -1,7 +1,7 @@
 # Corpus — HistoryCafé Napoleon IA
 
 > **Structure des dossiers** : `corpus/napoleon/` pour Napoléon, `corpus/jeanne/` pour Jeanne d'Arc.
-> Chaque personnage a sa propre collection ChromaDB (`napoleon`, `jeanne`).
+> Chaque personnage a ses chunks indexes dans Supabase (`napoleon`, `jeanne`).
 
 ---
 

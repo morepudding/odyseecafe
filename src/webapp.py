@@ -17,7 +17,7 @@ import secrets
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 sys.path.insert(0, str(Path(__file__).parent))
 
-from editorial_db         import list_editorial_themes
+from editorial_db         import archive_editorial_dossier, list_editorial_dossiers, list_editorial_themes
 from config               import env_value
 
 app = Flask(__name__)
@@ -25,6 +25,7 @@ app.secret_key = secrets.token_hex(32)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 CURRENT_TOPIC_PATH = DATA_DIR / "current_topic.json"
+DIGITAL_IDENTITIES_PATH = DATA_DIR / "digital_identities.json"
 APP_VERSION = (
     os.getenv("VERCEL_GIT_COMMIT_SHA")
     or os.getenv("VERCEL_GIT_COMMIT_REF")
@@ -220,6 +221,8 @@ En 5 a 8 lignes : ce qui s'est passe, ou, quand, qui est concerne, pourquoi c'es
 - Ce que l'IA trouve ameliorable dans son workflow :
 - Amelioration proposee pour la prochaine collecte :"""
 
+DOSSIER_PLACEHOLDER = DOSSIER_PLACEHOLDER.replace("/5", "/10")
+
 DEFAULT_DOSSIER_TEMPLATE = """# Dossier editorial a constituer
 
 ## Instructions de constitution
@@ -227,8 +230,16 @@ DEFAULT_DOSSIER_TEMPLATE = """# Dossier editorial a constituer
 - Ne pas reprendre ces instructions comme matiere factuelle du dossier.
 - Ne pas inventer de source, de date, de chiffre, de citation ou de responsabilite nominative.
 - Mettre une note Pertinence/Buzz seulement sur les elements editoriaux, jamais sur le mode operatoire IA.
-- Laisser vide ou signaler "non trouve" quand une information n'a pas ete verifiee.
-- Privilegier les sources primaires et les articles avec sources ; ecarter les reprises sans element nouveau.
+- Scores sur 10 : 5 = utile mais banal, 7 = solide, 8 = tres utile, 9-10 = rare/decisif. Ne donne pas 9 ou 10 a une information generique.
+- Si Pertinence ou Buzz est strictement superieur a 8, ajouter une ligne "Justification score :" qui explique pourquoi ce score merite d'etre aussi haut.
+- Ajouter pour chaque item une ligne "Statut : trouve", "Statut : fragile" ou "Statut : non trouve".
+- Ne pas t'arreter a la premiere information trouvee : pour chaque bloc important, chercher au moins deux angles differents (fait recent, source primaire, contradiction, chiffre, contre-exemple).
+- Eviter les repetitions : si un fait est deja utilise dans un item, le prochain item doit apporter un angle nouveau, une nuance, une consequence ou une incertitude.
+- Rendre le dossier editorialement exploitable : pour chaque bloc important, faire ressortir la tension qui peut nourrir un thread (contradiction politique, hypocrisie institutionnelle, promesse non tenue, deux poids deux mesures, acteur qui gagne/perd, angle qui fache).
+- Etre un peu plus polemique dans l'analyse, sans forcer le trait : nommer les conflits, les angles embarrassants et les responsabilites institutionnelles possibles, mais ne jamais transformer une hypothese en fait etabli.
+- Ne pas confondre prudence juridique et platitude : quand une accusation nominative est fragile, deplacer l'angle vers le mecanisme verifie (silence, controle absent, opacite, inertie, incitation politique, defaut de moyens).
+- Laisser vide ou signaler "non trouve" quand une information n'a pas ete verifiee ; ne pas remplir un item avec une paraphrase d'un item precedent.
+- Privilegier les sources primaires et les articles avec sources, mais garder aussi au moins une source de controverse ou de contradiction quand elle existe.
 
 """ + DOSSIER_PLACEHOLDER
 
@@ -771,6 +782,7 @@ HTML = """
 <nav class="sidebar">
   <div class="sidebar-logo">OdyséeCafé<span>Les immortels tweetent.</span></div>
   <a class="sidebar-link" href="/dossier">Sujet du jour</a>
+  <a class="sidebar-link" href="/identites">Identités numériques</a>
   <div class="section-label">Personnages</div>
   {% for c in characters %}
   <div class="char-item {% if c.active %}{% if c.id == active_id %}active{% endif %}{% else %}locked{% endif %}"
@@ -829,7 +841,7 @@ HTML = """
             <li>Choisir un sujet exploitable.</li>
             <li>Lire la matrice de collecte dans Odyssée Café.</li>
             <li>Compléter le dossier avec faits, acteurs, chiffres, précédents, comparaisons et contre-exemples.</li>
-            <li>Poser les sources, les fragilités et la plainte productive avant de générer.</li>
+            <li>Faire ressortir la tension éditoriale, les sources, les fragilités et les points vraiment exploitables avant de générer.</li>
           </ol>
         </div>
 
@@ -906,7 +918,7 @@ HTML = """
           {% else %}
           <div class="source-card">
             <div class="source-title">Aucune source disponible</div>
-            <div class="source-excerpt">La collection ChromaDB est vide. Lance l'ingestion du corpus pour réactiver le RAG.</div>
+            <div class="source-excerpt">La table Supabase `rag_chunks` est vide ou inaccessible. Lance l'ingestion du corpus pour réactiver le RAG.</div>
           </div>
           {% endfor %}
         </div>
@@ -1030,7 +1042,7 @@ HTML = """
       card.className = 'source-card';
       card.innerHTML = `
         <div class="source-title">Aucune source disponible</div>
-        <div class="source-excerpt">La collection ChromaDB est vide. Lance l'ingestion du corpus pour réactiver le RAG.</div>`;
+        <div class="source-excerpt">La table Supabase rag_chunks est vide ou inaccessible. Lance l'ingestion du corpus pour réactiver le RAG.</div>`;
       root.appendChild(card);
     }
   }
@@ -1355,7 +1367,12 @@ DOSSIER_HTML = """
     }
     .score-chip.rel { color: #bfdbfe; border-color: #1d4ed8; }
     .score-chip.buzz { color: #fed7aa; border-color: #9a521c; }
+    .score-chip.status { color: #d8b4fe; border-color: #6d28d9; }
     .score-value { color: #f8fafc; }
+    .score-reason {
+      color: #94a3b8; font-size: .76rem; line-height: 1.4;
+      border-left: 2px solid #475569; padding-left: .55rem;
+    }
     .actions { display: flex; gap: .7rem; flex-wrap: wrap; }
     button, .button-link {
       border: 0; border-radius: 8px; padding: .65rem 1rem;
@@ -1393,7 +1410,10 @@ DOSSIER_HTML = """
         <div class="brand">OdyséeCafé</div>
       <div class="meta">Collecte d'abord, écriture ensuite</div>
       </div>
-      <a class="nav-link" href="/">Générateur</a>
+      <div class="actions">
+        <a class="nav-link" href="/">Générateur</a>
+        <a class="nav-link" href="/identites">Identités</a>
+      </div>
     </div>
 
     <section class="panel">
@@ -1409,12 +1429,12 @@ DOSSIER_HTML = """
       <div class="label">Matrice de collecte universelle</div>
       <div class="workflow-note">
         <strong>Job quotidien Odyssée Café</strong>
-        <ol>
-          <li>Constituer le sujet du jour et vérifier qu'il est exploitable.</li>
-          <li>Lire cette matrice avant de remplir le dossier.</li>
-          <li>Compléter chaque bloc utile avec faits, institutions, acteurs, chiffres, précédents, comparaisons et contre-exemples.</li>
-          <li>Noter les sources, les fragilités et ce qui a été pénible mais productif dans le mode opératoire IA.</li>
-        </ol>
+          <ol>
+            <li>Constituer le sujet du jour et vérifier qu'il est exploitable.</li>
+            <li>Lire cette matrice avant de remplir le dossier.</li>
+            <li>Compléter chaque bloc utile avec faits, institutions, acteurs, chiffres, précédents, comparaisons et contre-exemples.</li>
+            <li>Noter les sources, les fragilités, les contradictions et la tension polémique publiable.</li>
+          </ol>
       </div>
       <div class="collect-grid">
         <div class="collect-card">
@@ -1476,9 +1496,11 @@ DOSSIER_HTML = """
           <div class="priority-title">{{ item.title }}</div>
           {% if item.body %}<div class="priority-body">{{ item.body }}</div>{% endif %}
           <div class="score-row">
-            <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance }}/5</span></span>
-            <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz }}/5</span></span>
+            <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance }}/10</span></span>
+            <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz }}/10</span></span>
+            {% if item.status %}<span class="score-chip status">{{ item.status }}</span>{% endif %}
           </div>
+          {% if item.score_reason %}<div class="score-reason">{{ item.score_reason }}</div>{% endif %}
         </article>
         {% endfor %}
       </div>
@@ -1503,11 +1525,13 @@ DOSSIER_HTML = """
                 </div>
                 {% if not section["is_meta"] %}
                 <div class="score-row">
-                  <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance or "-" }}/5</span></span>
-                  <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz or "-" }}/5</span></span>
+                  <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance or "-" }}/10</span></span>
+                  <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz or "-" }}/10</span></span>
+                  {% if item.status %}<span class="score-chip status">{{ item.status }}</span>{% endif %}
                 </div>
                 {% endif %}
               </div>
+              {% if item.score_reason %}<div class="score-reason">{{ item.score_reason }}</div>{% endif %}
             </article>
             {% endfor %}
           </div>
@@ -1576,7 +1600,259 @@ DOSSIER_HTML = """
 """
 
 
+IDENTITIES_HTML = """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>OdyséeCafé — Identités numériques</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #080f1a; color: #e2e8f0; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      width: min(1120px, calc(100% - 2rem)); margin: 0 auto;
+      padding: 2rem 0 2.5rem; display: grid; gap: 1rem;
+    }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid #1e2d45;
+    }
+    .brand { color: #f59e0b; font-size: 1rem; font-weight: 850; }
+    .nav { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-link {
+      color: #cbd5e1; text-decoration: none; border: 1px solid #1e2d45;
+      border-radius: 8px; padding: .45rem .75rem; font-size: .82rem;
+      background: #0d1829;
+    }
+    h1 { font-size: 1.45rem; line-height: 1.25; }
+    h2 { font-size: 1.1rem; line-height: 1.25; }
+    h3 { font-size: .9rem; color: #f8fafc; margin-bottom: .45rem; }
+    .meta { color: #64748b; font-size: .78rem; margin-top: .25rem; }
+    .intro, .identity-card, .section-card {
+      background: #0d1829; border: 1px solid #1e2d45; border-radius: 10px;
+      padding: 1rem;
+    }
+    .intro { display: grid; gap: .45rem; }
+    .intro p { color: #cbd5e1; line-height: 1.5; font-size: .9rem; }
+    .identity-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .identity-card { display: grid; gap: .9rem; align-content: start; }
+    .identity-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: .8rem; padding-bottom: .75rem; border-bottom: 1px solid #1e2d45;
+    }
+    .identity-title { display: grid; gap: .18rem; }
+    .handle {
+      display: inline-flex; color: #bfdbfe; border: 1px solid #1d4ed8;
+      background: #08111f; border-radius: 999px; padding: .2rem .55rem;
+      font-size: .72rem; font-weight: 800; white-space: nowrap;
+    }
+    .section-card {
+      background: #08111f; border-radius: 8px; padding: .85rem;
+      display: grid; gap: .65rem;
+    }
+    .label {
+      font-size: .68rem; font-weight: 800; letter-spacing: .1em;
+      text-transform: uppercase; color: #64748b;
+    }
+    .copy {
+      color: #cbd5e1; font-size: .84rem; line-height: 1.5;
+    }
+    .muted { color: #94a3b8; }
+    ul { display: grid; gap: .35rem; padding-left: 1rem; }
+    li { color: #cbd5e1; font-size: .82rem; line-height: 1.4; }
+    .chip-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; min-height: 26px;
+      border-radius: 999px; padding: .18rem .55rem; font-size: .72rem;
+      font-weight: 800; border: 1px solid #1e2d45; background: #0d1829;
+      color: #dbeafe;
+    }
+    .mini-list { display: grid; gap: .5rem; }
+    .mini-item {
+      background: #0d1829; border: 1px solid #1e2d45; border-radius: 8px;
+      padding: .65rem; display: grid; gap: .25rem;
+    }
+    .mini-title { color: #f8fafc; font-weight: 800; font-size: .82rem; }
+    .placeholder { color: #fbbf24; font-size: .78rem; line-height: 1.45; }
+    .prompt {
+      color: #94a3b8; font-size: .75rem; line-height: 1.45;
+      border-left: 2px solid #334155; padding-left: .55rem;
+    }
+    .source-path {
+      color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .78rem; word-break: break-word;
+    }
+    @media (max-width: 720px) {
+      .page { width: 100%; padding: 1rem .85rem 1.4rem; }
+      .topbar { align-items: flex-start; display: grid; }
+      .nav { justify-content: flex-start; }
+      .identity-grid { grid-template-columns: 1fr; }
+      .identity-head { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div>
+        <div class="brand">OdyséeCafé</div>
+        <div class="meta">Identité avant publication</div>
+      </div>
+      <div class="nav">
+        <a class="nav-link" href="/">Générateur</a>
+        <a class="nav-link" href="/dossier">Sujet du jour</a>
+      </div>
+    </div>
+
+    <section class="intro">
+      <div>
+        <div class="label">Placeholder éditorial</div>
+        <h1>Identités numériques des personnages</h1>
+      </div>
+      <p>Chaque profil regroupe les briques à remplir avant de publier durablement : Linktree, faux LinkedIn, blog, playlist et Instagram.</p>
+      <div class="source-path">Source editable : {{ source_path }}</div>
+    </section>
+
+    <section class="identity-grid">
+      {% for character_id, identity in identities.items() %}
+      <article class="identity-card">
+        <div class="identity-head">
+          <div class="identity-title">
+            <h2>{{ identity.display_name or identity.name }}</h2>
+            <div class="meta">{{ identity.baseline.one_line_identity }}</div>
+          </div>
+          <span class="handle">{{ identity.instagram.handle }}</span>
+        </div>
+
+        <section class="section-card">
+          <div class="label">Base</div>
+          <div class="copy">{{ identity.baseline.digital_goal }}</div>
+          <div class="chip-row">
+            {% for item in identity.baseline.voice %}
+            <span class="chip">{{ item }}</span>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="label">Linktree</div>
+          <div class="copy">{{ identity.linktree.bio }}</div>
+          <div class="mini-list">
+            {% for link in identity.linktree.links %}
+            <div class="mini-item">
+              <div class="mini-title">{{ link.label }}</div>
+              <div class="placeholder">{{ link.url or "URL à remplir" }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="label">Faux LinkedIn</div>
+          <div class="mini-title">{{ identity.fake_linkedin.headline }}</div>
+          <div class="placeholder">{{ identity.fake_linkedin.about_placeholder }}</div>
+          <div class="chip-row">
+            {% for skill in identity.fake_linkedin.skills %}
+            <span class="chip">{{ skill }}</span>
+            {% endfor %}
+          </div>
+          <div class="mini-list">
+            {% for post in identity.fake_linkedin.post_ideas %}
+            <div class="mini-item"><div class="copy">{{ post }}</div></div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="label">Blog</div>
+          <div>
+            <div class="mini-title">{{ identity.blog.title }}</div>
+            <div class="copy muted">{{ identity.blog.subtitle }}</div>
+          </div>
+          <div class="mini-list">
+            {% for article in identity.blog.article_placeholders %}
+            <div class="mini-item">
+              <div class="mini-title">{{ article.title }}</div>
+              <div class="placeholder">{{ article.angle_placeholder }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="label">Playlist</div>
+          <div>
+            <div class="mini-title">{{ identity.playlist.title }}</div>
+            <div class="copy muted">{{ identity.playlist.platform_url or "URL plateforme à remplir" }}</div>
+          </div>
+          <div class="chip-row">
+            {% for mood in identity.playlist.mood %}
+            <span class="chip">{{ mood }}</span>
+            {% endfor %}
+          </div>
+          <div class="mini-list">
+            {% for track in identity.playlist.tracks_to_fill %}
+            <div class="mini-item">
+              <div class="mini-title">{{ track.position }}. {{ track.artist or "Artiste à remplir" }} — {{ track.title or "Titre à remplir" }}</div>
+              <div class="placeholder">{{ track.character_note_placeholder }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="label">Instagram</div>
+          <div class="copy">{{ identity.instagram.bio }}</div>
+          <h3>Direction visuelle</h3>
+          <ul>
+            {% for item in identity.instagram.visual_direction %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          <h3>Formats récurrents</h3>
+          <div class="chip-row">
+            {% for format in identity.instagram.recurring_formats %}
+            <span class="chip">{{ format }}</span>
+            {% endfor %}
+          </div>
+          <div class="mini-list">
+            {% for post in identity.instagram.post_placeholders %}
+            <div class="mini-item">
+              <div class="mini-title">{{ post.format }}</div>
+              <div class="placeholder">{{ post.caption_placeholder }}</div>
+              <div class="prompt">{{ post.image_prompt_placeholder }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+      </article>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
+"""
+
+
 # ── ROUTES ────────────────────────────────────────────────────────────────────
+
+def _load_digital_identities() -> dict:
+    try:
+        if not DIGITAL_IDENTITIES_PATH.exists():
+            return {}
+        data = json.loads(DIGITAL_IDENTITIES_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        print(f"[webapp] digital identities skipped: {exc}")
+        return {}
 
 def _is_meta_dossier_section(title: str) -> bool:
     normalized = title.strip().lower()
@@ -1590,8 +1866,14 @@ def _is_meta_dossier_section(title: str) -> bool:
 def _score_from_line(line: str) -> int | None:
     import re
 
-    match = re.search(r":\s*([0-5])\s*/\s*5", line)
-    return int(match.group(1)) if match else None
+    match = re.search(r":\s*(10|[0-9])\s*/\s*(10|5)", line)
+    if not match:
+        return None
+    score = int(match.group(1))
+    denominator = int(match.group(2))
+    if denominator == 5:
+        return min(score * 2, 10)
+    return score
 
 
 def _finish_dossier_item(section: dict | None, item: dict | None) -> None:
@@ -1600,9 +1882,9 @@ def _finish_dossier_item(section: dict | None, item: dict | None) -> None:
     relevance = item.get("relevance")
     buzz = item.get("buzz")
     total = (relevance or 0) + (buzz or 0)
-    if total >= 8:
+    if total >= 16:
         item["priority_class"] = "priority-high"
-    elif total >= 5:
+    elif total >= 10:
         item["priority_class"] = "priority-mid"
     else:
         item["priority_class"] = "priority-low"
@@ -1648,6 +1930,8 @@ def _parse_dossier_for_view(dossier: str) -> tuple[list[dict], list[dict]]:
                 "body": body.strip(),
                 "relevance": None,
                 "buzz": None,
+                "status": "",
+                "score_reason": "",
                 "priority_class": "priority-low",
             }
             continue
@@ -1658,6 +1942,14 @@ def _parse_dossier_for_view(dossier: str) -> tuple[list[dict], list[dict]]:
         if line.startswith("Potentiel buzz"):
             if current_item is not None:
                 current_item["buzz"] = _score_from_line(line)
+            continue
+        if line.startswith("Statut"):
+            if current_item is not None:
+                current_item["status"] = line.split(":", 1)[-1].strip()
+            continue
+        if line.startswith("Justification score"):
+            if current_item is not None:
+                current_item["score_reason"] = line.split(":", 1)[-1].strip()
             continue
         if current_item is not None:
             current_item["body"] = " ".join(part for part in [current_item["body"], line] if part)
@@ -1729,9 +2021,6 @@ def _save_current_topic(
     angle: str = "",
     character: str = "napoleon",
 ) -> None:
-    if os.getenv("VERCEL"):
-        return
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
         "question": question.strip(),
         "dossier": dossier.strip(),
@@ -1740,10 +2029,21 @@ def _save_current_topic(
         "origin": origin,
         "sources": sources or [],
     }
-    CURRENT_TOPIC_PATH.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    if not os.getenv("VERCEL"):
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        CURRENT_TOPIC_PATH.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    if dossier.strip():
+        archive_editorial_dossier(
+            question,
+            dossier,
+            angle=angle,
+            sources=sources or [],
+            character_id=character,
+            origin=origin,
+        )
 
 
 def _fallback_thread_result(
@@ -1846,6 +2146,15 @@ def index():
         chunk_count     = chunk_count,
         model           = model,
         app_version     = APP_VERSION,
+    )
+
+
+@app.route("/identites")
+def identities_page():
+    return render_template_string(
+        IDENTITIES_HTML,
+        identities=_load_digital_identities(),
+        source_path=str(DIGITAL_IDENTITIES_PATH),
     )
 
 
@@ -2040,6 +2349,33 @@ def api_topic():
         character=character,
         sources=sources,
     )
+
+
+@app.route("/api/dossiers", methods=["GET", "POST"])
+def api_dossiers():
+    if request.method == "GET":
+        character = (request.args.get("character") or "").strip().lower() or None
+        return jsonify(ok=True, dossiers=list_editorial_dossiers(character_id=character))
+
+    data = request.get_json(silent=True) or {}
+    state = _get_thread_state()
+    question = (data.get("question") or state.get("question") or "").strip()
+    dossier = (data.get("dossier") or state.get("dossier") or "").strip()
+    angle = (data.get("angle") or state.get("angle") or "").strip()
+    character = (data.get("character") or state.get("character") or "napoleon").strip().lower()
+    origin = (data.get("origin") or "manual_archive").strip()[:40]
+    sources = data.get("sources") if isinstance(data.get("sources"), list) else state.get("sources") or []
+    archived = archive_editorial_dossier(
+        question,
+        dossier,
+        angle=angle,
+        sources=sources,
+        character_id=character,
+        origin=origin,
+    )
+    if not archived:
+        return jsonify(ok=False, error="Archivage Supabase impossible ou dossier vide"), 400
+    return jsonify(ok=True, dossier=archived)
 
 
 @app.route("/api/chat", methods=["POST"])

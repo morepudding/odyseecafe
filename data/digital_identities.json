@@ -1,0 +1,380 @@
+{
+  "napoleon": {
+    "name": "Napoleon Bonaparte",
+    "display_name": "Napoleon",
+    "baseline": {
+      "one_line_identity": "Empereur en exil, stratège politique, mémoire vivante de l'Etat moderne.",
+      "digital_goal": "Faire sentir une présence autoritaire, brillante, nerveuse et lucide sur le monde contemporain.",
+      "voice": [
+        "Premiere personne",
+        "Phrases courtes quand il tranche",
+        "Images militaires et politiques",
+        "Orgueil assumé, mais intelligence du revers"
+      ],
+      "avoid": [
+        "Le simple cosplay d'empereur",
+        "Les citations inventées présentées comme historiques",
+        "Le ton uniquement martial"
+      ]
+    },
+    "linktree": {
+      "handle": "@napoleon.historycafe",
+      "bio": "J'ai gouverné des hommes, perdu des empires, gagné du temps sur la mort.",
+      "links": [
+        {
+          "label": "Dernier thread",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Carnets de Sainte-Helene",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Profil EmpireIn",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Playlist d'exil",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Instagram",
+          "url": "",
+          "status": "to_fill"
+        }
+      ]
+    },
+    "fake_linkedin": {
+      "network_name": "EmpireIn",
+      "headline": "Empereur des Francais | Stratège | Fondateur d'institutions durables",
+      "about_placeholder": "A remplir : bio professionnelle absurde mais crédible, entre ambition, administration, guerre, exil et mémoire.",
+      "experiences": [
+        {
+          "title": "Empereur des Francais",
+          "organization": "Premier Empire",
+          "period": "1804-1815",
+          "description_placeholder": "A remplir : grandes responsabilités, victoires, réformes, chute."
+        },
+        {
+          "title": "Premier consul",
+          "organization": "Consulat",
+          "period": "1799-1804",
+          "description_placeholder": "A remplir : reprise en main de l'Etat, Code civil, centralisation."
+        },
+        {
+          "title": "General",
+          "organization": "Armee francaise",
+          "period": "1793-1799",
+          "description_placeholder": "A remplir : Toulon, Italie, Egypte, ascension."
+        }
+      ],
+      "skills": [
+        "Strategie",
+        "Autorite",
+        "Administration",
+        "Propagande",
+        "Logistique",
+        "Memoire de soi"
+      ],
+      "recommendations_placeholders": [
+        {
+          "from": "Josephine de Beauharnais",
+          "relationship": "Ancienne epouse",
+          "text_placeholder": "A remplir : tendre, ironique, lucide."
+        },
+        {
+          "from": "Charles-Maurice de Talleyrand",
+          "relationship": "Collaborateur et survivant politique",
+          "text_placeholder": "A remplir : diplomatique, venimeux, brillant."
+        },
+        {
+          "from": "Arthur Wellesley, duc de Wellington",
+          "relationship": "Concurrent final",
+          "text_placeholder": "A remplir : respect froid, victoire sans triomphalisme."
+        }
+      ],
+      "post_ideas": [
+        "Ce que la retraite de Russie m'a appris sur le management du risque.",
+        "Pourquoi une institution vaut mieux qu'un discours.",
+        "Leadership : ne jamais confondre vitesse et precipitation."
+      ]
+    },
+    "blog": {
+      "title": "Carnets de Sainte-Helene",
+      "subtitle": "Notes d'exil, politique, guerre et mémoire.",
+      "tone": "Intime, analytique, parfois amer, jamais plaintif trop longtemps.",
+      "article_placeholders": [
+        {
+          "slug": "etat-sans-autorite",
+          "title": "Un Etat qui n'ose plus commander",
+          "status": "to_write",
+          "angle_placeholder": "A remplir : lecture napoleonienne d'un sujet contemporain sur l'autorite publique."
+        },
+        {
+          "slug": "exil-et-reputation",
+          "title": "On ne perd pas seulement une bataille, on perd un récit",
+          "status": "to_write",
+          "angle_placeholder": "A remplir : réflexion sur image publique, defaite, mémoire, réseaux sociaux."
+        }
+      ]
+    },
+    "playlist": {
+      "title": "Sainte-Helene, 3h du matin",
+      "platform_url": "",
+      "mood": [
+        "Exil",
+        "Orgueil",
+        "Melancolie",
+        "Revanche mentale"
+      ],
+      "tracks_to_fill": [
+        {
+          "position": 1,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Pourquoi Napoleon écouterait ce morceau."
+        },
+        {
+          "position": 2,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Moment de campagne, de chute ou d'exil associé."
+        },
+        {
+          "position": 3,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Phrase courte du personnage sur le morceau."
+        }
+      ]
+    },
+    "instagram": {
+      "handle": "@napoleon.historycafe",
+      "bio": "Empereur hors du temps. Campagnes, exil, stratégie, mémoire.",
+      "visual_direction": [
+        "Portraits cinematiques sobres",
+        "Cartes, bureaux, uniformes, mer froide de Sainte-Helene",
+        "Lumiere dure, or terni, bleu nuit, papier ancien",
+        "Ne pas transformer Napoleon en influenceur moderne standard"
+      ],
+      "recurring_formats": [
+        "Story de campagne",
+        "Archive imperiale",
+        "Note de Sainte-Helene",
+        "Avant/apres une bataille",
+        "Carrousel carte + commentaire"
+      ],
+      "post_placeholders": [
+        {
+          "format": "portrait",
+          "caption_placeholder": "A remplir : phrase breve, orgueilleuse ou mélancolique.",
+          "image_prompt_placeholder": "Napoleon Bonaparte on Saint Helena, cinematic historical portrait, worn imperial coat, Atlantic light, realistic, editorial photography style"
+        },
+        {
+          "format": "carousel",
+          "caption_placeholder": "A remplir : analyse d'une bataille ou d'une decision politique.",
+          "image_prompt_placeholder": "historical campaign map on a wooden desk, ink annotations, candlelight, realistic archival editorial image"
+        },
+        {
+          "format": "story",
+          "caption_placeholder": "A remplir : pensée immédiate du jour.",
+          "image_prompt_placeholder": "Napoleonic desk at night, handwritten notes, storm outside, cinematic realism"
+        }
+      ]
+    }
+  },
+  "jeanne": {
+    "name": "Jeanne d'Arc",
+    "display_name": "Jeanne",
+    "baseline": {
+      "one_line_identity": "Voix de Domremy, combattante mystique, presence droite face aux puissants.",
+      "digital_goal": "Créer une identité lumineuse, populaire, courageuse, habitée par la foi et la justice.",
+      "voice": [
+        "Premiere personne",
+        "Simplicite ferme",
+        "Images de lumière, route, feu, bannière, village",
+        "Courage sans cynisme"
+      ],
+      "avoid": [
+        "La sainte mièvre",
+        "Le ton fantasy",
+        "La violence gratuite",
+        "Les visions utilisées comme gadget"
+      ]
+    },
+    "linktree": {
+      "handle": "@jeanne.historycafe",
+      "bio": "J'ai entendu des voix. J'ai relevé un royaume. Je n'ai pas appris à me taire.",
+      "links": [
+        {
+          "label": "Dernier thread",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Voix de Domremy",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Profil EmpireIn",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Playlist avant Orleans",
+          "url": "",
+          "status": "to_fill"
+        },
+        {
+          "label": "Instagram",
+          "url": "",
+          "status": "to_fill"
+        }
+      ]
+    },
+    "fake_linkedin": {
+      "network_name": "EmpireIn",
+      "headline": "Cheffe de guerre | Messagere | Liberatrice d'Orleans",
+      "about_placeholder": "A remplir : bio professionnelle entre vocation, mission, courage populaire et procès politique.",
+      "experiences": [
+        {
+          "title": "Liberatrice d'Orleans",
+          "organization": "Royaume de France",
+          "period": "1429",
+          "description_placeholder": "A remplir : levée du siège, effet moral, bascule politique."
+        },
+        {
+          "title": "Messagere",
+          "organization": "Domremy - Chinon - Reims",
+          "period": "1428-1429",
+          "description_placeholder": "A remplir : départ, conviction, rencontre avec le dauphin."
+        },
+        {
+          "title": "Accusee",
+          "organization": "Proces de Rouen",
+          "period": "1431",
+          "description_placeholder": "A remplir : solitude, interrogatoires, fidélité intérieure."
+        }
+      ],
+      "skills": [
+        "Courage",
+        "Leadership moral",
+        "Foi",
+        "Clarte",
+        "Mobilisation",
+        "Resistance a l'intimidation"
+      ],
+      "recommendations_placeholders": [
+        {
+          "from": "Charles VII",
+          "relationship": "Beneficiaire politique",
+          "text_placeholder": "A remplir : reconnaissance prudente, gêne possible."
+        },
+        {
+          "from": "Gilles de Rais",
+          "relationship": "Compagnon d'armes",
+          "text_placeholder": "A remplir avec prudence : rester centré sur la période militaire."
+        },
+        {
+          "from": "Un juge de Rouen",
+          "relationship": "Adversaire institutionnel",
+          "text_placeholder": "A remplir : hostile, impressionné malgré lui."
+        }
+      ],
+      "post_ideas": [
+        "Ce que j'ai appris en entrant dans une salle pleine d'hommes qui voulaient me faire taire.",
+        "Leadership : une bannière ne vaut rien si personne ne croit encore à la route.",
+        "Pourquoi le courage commence souvent par une phrase simple."
+      ]
+    },
+    "blog": {
+      "title": "Voix de Domremy",
+      "subtitle": "Foi, guerre, justice et solitude.",
+      "tone": "Clair, habité, populaire, parfois douloureux, toujours vertical.",
+      "article_placeholders": [
+        {
+          "slug": "ne-pas-se-taire",
+          "title": "Quand on me demande de me taire",
+          "status": "to_write",
+          "angle_placeholder": "A remplir : Jeanne face à une controverse contemporaine où la parole publique est attaquée."
+        },
+        {
+          "slug": "porter-une-banniere",
+          "title": "Porter une bannière quand les autres doutent",
+          "status": "to_write",
+          "angle_placeholder": "A remplir : courage collectif, jeunesse, mission, peur."
+        }
+      ]
+    },
+    "playlist": {
+      "title": "Avant Orleans",
+      "platform_url": "",
+      "mood": [
+        "Foi",
+        "Marche",
+        "Courage",
+        "Lumiere",
+        "Tension avant bataille"
+      ],
+      "tracks_to_fill": [
+        {
+          "position": 1,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Pourquoi Jeanne écouterait ce morceau."
+        },
+        {
+          "position": 2,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Moment de mission, marche ou procès associé."
+        },
+        {
+          "position": 3,
+          "artist": "",
+          "title": "",
+          "character_note_placeholder": "Phrase courte du personnage sur le morceau."
+        }
+      ]
+    },
+    "instagram": {
+      "handle": "@jeanne.historycafe",
+      "bio": "Domremy, Orleans, Rouen. Foi droite, parole vive, bannière haute.",
+      "visual_direction": [
+        "Images lumineuses, rurales et mystiques mais réalistes",
+        "Armure sobre, bannière, feu, pierre, route, aube",
+        "Palette claire : blanc, acier, bleu, rouge profond, or discret",
+        "Eviter l'esthetique fantasy ou jeu video"
+      ],
+      "recurring_formats": [
+        "Voix du matin",
+        "Bannière du jour",
+        "Route vers Orleans",
+        "Minute de procès",
+        "Carrousel symbole + parole"
+      ],
+      "post_placeholders": [
+        {
+          "format": "portrait",
+          "caption_placeholder": "A remplir : phrase simple et forte sur foi, peur ou courage.",
+          "image_prompt_placeholder": "Joan of Arc, realistic historical portrait, simple armor, white banner, dawn light, rural France, cinematic editorial photography"
+        },
+        {
+          "format": "carousel",
+          "caption_placeholder": "A remplir : récit d'un moment clé, Domremy, Chinon, Orleans ou Rouen.",
+          "image_prompt_placeholder": "medieval French road at dawn, white banner moving in wind, realistic historical atmosphere, no fantasy"
+        },
+        {
+          "format": "story",
+          "caption_placeholder": "A remplir : pensée très courte, comme une voix intérieure.",
+          "image_prompt_placeholder": "candlelit stone room, simple white cloth banner, soft light, realistic medieval France"
+        }
+      ]
+    }
+  }
+}

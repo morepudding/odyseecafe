@@ -41,7 +41,7 @@ L'objectif n'est pas la reconstitution historique fidèle — c'est la **polémi
 | Composant | Outil |
 |---|---|
 | Langage | Python 3.14 |
-| Base vectorielle | ChromaDB (local) |
+| Base vectorielle | Supabase Postgres + pgvector |
 | Embeddings | `nvidia/llama-nemotron-embed-vl-1b-v2:free` via OpenRouter |
 | LLM | `deepseek/deepseek-v4-flash` via OpenRouter (configurable) |
 | API LLM | [OpenRouter](https://openrouter.ai) |
@@ -55,7 +55,7 @@ L'objectif n'est pas la reconstitution historique fidèle — c'est la **polémi
 corpus/*.txt
      │
      ▼
-ingest.py ──► ChromaDB (chroma_db/)
+ingest.py ──► Supabase `rag_chunks`
                    │
                    ▼
 query.py ──► N chunks les plus proches (recherche sémantique)
@@ -66,7 +66,7 @@ chat.py / twitter_bot.py ──► LLM (OpenRouter) ──► Tweet / Réponse
 
 Chaque personnage a :
 - son propre dossier `corpus/` de textes sources
-- sa propre collection ChromaDB
+- ses chunks indexes dans Supabase
 - son propre system prompt
 
 ---
@@ -77,9 +77,8 @@ Chaque personnage a :
 odyseecafe/
 │
 ├── corpus/                  ← textes sources par personnage
-├── chroma_db/               ← base vectorielle locale (gitignore)
 ├── src/
-│   ├── ingest.py            ← indexation corpus → ChromaDB
+│   ├── ingest.py            ← indexation corpus → Supabase
 │   ├── query.py             ← recherche sémantique
 │   ├── chat.py              ← REPL interactif
 │   ├── twitter_bot.py       ← publication Twitter/X
@@ -127,6 +126,19 @@ python src/chat.py
 **Indexer un nouveau corpus :**
 ```bash
 python src/ingest.py
+```
+
+**Configurer Supabase :**
+1. Exécuter `supabase_rag.sql` dans le SQL Editor Supabase.
+2. Ajouter `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` dans `.env.local`.
+3. Lancer `python src/ingest.py --character napoleon` pour indexer un corpus.
+
+Le même SQL crée aussi `editorial_dossiers`, l'historique cloud des dossiers
+quotidiens. Une sauvegarde de sujet avec dossier rempli archive automatiquement
+le snapshot du jour. Endpoints utiles :
+```bash
+GET  /api/dossiers
+POST /api/dossiers
 ```
 
 **Publier un tweet :**

@@ -1,6 +1,6 @@
 """
 chat.py — Interface conversationnelle Napoléon IA
-RAG : retrieval ChromaDB + LLM OpenRouter
+RAG : retrieval Supabase/pgvector + LLM OpenRouter
 """
 
 import os

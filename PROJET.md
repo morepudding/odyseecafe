@@ -1,38 +1,38 @@
-# HistoryCafé — Napoléon IA
+﻿# HistoryCafÃ© â€” NapolÃ©on IA
 
-> Objectif : créer une IA qui répond à la première personne comme Napoléon Bonaparte,
-> en s'appuyant sur ses écrits et les écrits historiques le concernant.
+> Objectif : crÃ©er une IA qui rÃ©pond Ã  la premiÃ¨re personne comme NapolÃ©on Bonaparte,
+> en s'appuyant sur ses Ã©crits et les Ã©crits historiques le concernant.
 >
-> Règle du jeu : **chaque technique est ajoutée une par une**.
-> Après chaque ajout, on repose la question de référence pour mesurer le progrès.
+> RÃ¨gle du jeu : **chaque technique est ajoutÃ©e une par une**.
+> AprÃ¨s chaque ajout, on repose la question de rÃ©fÃ©rence pour mesurer le progrÃ¨s.
 
 ---
 
-## Question de référence
+## Question de rÃ©fÃ©rence
 
 > **"Tu penses quoi du service militaire obligatoire ?"**
 
-Cette question est posée à chaque étape pour comparer les réponses et mesurer l'amélioration.
+Cette question est posÃ©e Ã  chaque Ã©tape pour comparer les rÃ©ponses et mesurer l'amÃ©lioration.
 
 ---
 
-## Règles du projet
+## RÃ¨gles du projet
 
-- Le code est **entièrement écrit par l'IA**
-- Les décisions et la direction sont **prises par le prompteur humain**
-- On avance **une technique à la fois**, dans l'ordre défini ci-dessous
-- On ne code pas l'étape suivante avant d'avoir validé l'étape en cours
+- Le code est **entiÃ¨rement Ã©crit par l'IA**
+- Les dÃ©cisions et la direction sont **prises par le prompteur humain**
+- On avance **une technique Ã  la fois**, dans l'ordre dÃ©fini ci-dessous
+- On ne code pas l'Ã©tape suivante avant d'avoir validÃ© l'Ã©tape en cours
 
 ---
 
-## Statut des étapes
+## Statut des Ã©tapes
 
 | # | Technique | Statut |
 |---|---|---|
-| 1 | **RAG** | ✅ Fait |
-| 2 | **System Prompt Engineering** | ✅ Fait |
-| 3 | **Few-shot Examples** | ✅ Fait |
-| 4 | **Fine-tuning** *(optionnel)* | 🔲 À faire |
+| 1 | **RAG** | âœ… Fait |
+| 2 | **System Prompt Engineering** | âœ… Fait |
+| 3 | **Few-shot Examples** | âœ… Fait |
+| 4 | **Fine-tuning** *(optionnel)* | ðŸ”² Ã€ faire |
 
 ---
 
@@ -41,8 +41,8 @@ Cette question est posée à chaque étape pour comparer les réponses et mesure
 | Composant | Outil | Note |
 |---|---|---|
 | Langage | Python 3.14 | PATH : `C:\Users\botterr\AppData\Roaming\Python\Python314` |
-| Base vectorielle | ChromaDB (local) | `chroma_db/`, collection `napoleon` |
-| Embeddings | `nvidia/llama-nemotron-embed-vl-1b-v2:free` via OpenRouter | Appel httpx direct (bypass SDK — bug de parsing) |
+| Base vectorielle | Supabase Postgres + pgvector | table `rag_chunks`, RPC `match_rag_chunks` |
+| Embeddings | `nvidia/llama-nemotron-embed-vl-1b-v2:free` via OpenRouter | Appel httpx direct (bypass SDK â€” bug de parsing) |
 | LLM | `deepseek/deepseek-v4-flash` via OpenRouter | Configurable via `.env.local` |
 | API | OpenRouter (`https://openrouter.ai/api/v1`) | Header `X-Title: historycafe-napoleon` |
 | SSL workaround | `httpx.Client(verify=False)` partout | Proxy Windows intercepte les certificats |
@@ -53,44 +53,44 @@ Cette question est posée à chaque étape pour comparer les réponses et mesure
 
 ```
 historycafe/
-│
-├── PROJET.md                  ← ce fichier
-│
-├── corpus/                    ← 18 fichiers .txt, ~18 000 chunks ingérés
-│   ├── memorial_sainte_helene_*.txt   (×4 tomes)
-│   ├── oeuvres_napoleon_*.txt         (×5 volumes)
-│   ├── bourrienne_memoires_*.txt      (×2 volumes)
-│   ├── napoleon_lettres_josephine.txt
-│   ├── napoleon_maximes_guerre.txt
-│   └── ... (autres sources)
-│
-├── chroma_db/                 ← base vectorielle persistante (gitignore)
-│
-├── src/
-│   ├── ingest.py              ← indexation corpus → ChromaDB
-│   ├── query.py               ← recherche sémantique dans ChromaDB
-│   ├── chat.py                ← interface chat RAG + LLM
-│   └── compare_models.py     ← benchmark multi-modèles
-│
-├── tests/
-│   └── benchmark.md           ← réponses à la question de référence par étape
-│
-├── .env.local                 ← clés API (jamais committé)
-├── requirements.txt
-└── README.md
+â”‚
+â”œâ”€â”€ PROJET.md                  â† ce fichier
+â”‚
+â”œâ”€â”€ corpus/                    â† 18 fichiers .txt, ~18 000 chunks ingÃ©rÃ©s
+â”‚   â”œâ”€â”€ memorial_sainte_helene_*.txt   (Ã—4 tomes)
+â”‚   â”œâ”€â”€ oeuvres_napoleon_*.txt         (Ã—5 volumes)
+â”‚   â”œâ”€â”€ bourrienne_memoires_*.txt      (Ã—2 volumes)
+â”‚   â”œâ”€â”€ napoleon_lettres_josephine.txt
+â”‚   â”œâ”€â”€ napoleon_maximes_guerre.txt
+â”‚   â””â”€â”€ ... (autres sources)
+â”‚
+â”œâ”€â”€ Supabase rag_chunks                 â† base vectorielle persistante (gitignore)
+â”‚
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ ingest.py              â† indexation corpus â†’ Supabase/pgvector
+â”‚   â”œâ”€â”€ query.py               â† recherche sÃ©mantique dans Supabase/pgvector
+â”‚   â”œâ”€â”€ chat.py                â† interface chat RAG + LLM
+â”‚   â””â”€â”€ compare_models.py     â† benchmark multi-modÃ¨les
+â”‚
+â”œâ”€â”€ tests/
+â”‚   â””â”€â”€ benchmark.md           â† rÃ©ponses Ã  la question de rÃ©fÃ©rence par Ã©tape
+â”‚
+â”œâ”€â”€ .env.local                 â† clÃ©s API (jamais committÃ©)
+â”œâ”€â”€ requirements.txt
+â””â”€â”€ README.md
 ```
 
 ---
 
 ## Corpus
 
-18 fichiers `.txt`, **18 109 chunks** ingérés dans ChromaDB.
+Corpus indexe dans Supabase/pgvector.
 
 Sources :
-- *Mémorial de Sainte-Hélène* — Las Cases (4 tomes)
-- *Œuvres de Napoléon* (5 volumes)
-- *Mémoires de Bourrienne* (2 volumes)
-- *Lettres à Joséphine*
+- *MÃ©morial de Sainte-HÃ©lÃ¨ne* â€” Las Cases (4 tomes)
+- *Å’uvres de NapolÃ©on* (5 volumes)
+- *MÃ©moires de Bourrienne* (2 volumes)
+- *Lettres Ã  JosÃ©phine*
 - *Maximes de guerre*
 - Proclamations, correspondance, autres textes contemporains
 
@@ -99,70 +99,71 @@ Sources :
 ## Fichiers principaux
 
 ### `src/ingest.py`
-Script one-shot. Lit `corpus/*.txt`, découpe en chunks (taille 1000, overlap 150), embed via OpenRouter (httpx direct), stocke dans ChromaDB. Skip automatique si le fichier a déjà été ingéré (`{stem}_chunk_0` check).
+Script one-shot. Lit `corpus/*.txt`, dÃ©coupe en chunks (taille 1000, overlap 150), embed via OpenRouter (httpx direct), stocke dans Supabase `rag_chunks`. Skip automatique si le premier chunk du fichier existe deja.
 
 ### `src/query.py`
-Recherche sémantique. Embed la question via OpenRouter, query ChromaDB, retourne N chunks les plus proches avec source et distance.
+Recherche sÃ©mantique. Embed la question via OpenRouter, appelle la RPC Supabase `match_rag_chunks`, retourne N chunks les plus proches avec source et distance.
 
 ### `src/chat.py`
-Interface chat complète. Retrieve → contexte → LLM → Napoléon répond. REPL interactif, Ctrl+C pour quitter. Modèle configurable via `OPENROUTER_MODEL` dans `.env.local`.
+Interface chat complÃ¨te. Retrieve â†’ contexte â†’ LLM â†’ NapolÃ©on rÃ©pond. REPL interactif, Ctrl+C pour quitter. ModÃ¨le configurable via `OPENROUTER_MODEL` dans `.env.local`.
 
 ### `src/compare_models.py`
-Script de comparaison. Récupère les chunks RAG une seule fois, les passe à chaque modèle de la liste `MODELS`, affiche les réponses côte à côte. Utilisé pour les benchmarks multi-modèles.
+Script de comparaison. RÃ©cupÃ¨re les chunks RAG une seule fois, les passe Ã  chaque modÃ¨le de la liste `MODELS`, affiche les rÃ©ponses cÃ´te Ã  cÃ´te. UtilisÃ© pour les benchmarks multi-modÃ¨les.
 
 ---
 
-## Historique des décisions
+## Historique des dÃ©cisions
 
-### Étape 1 — RAG (✅)
+### Ã‰tape 1 â€” RAG (âœ…)
 
-**Stack initiale prévue :** LlamaIndex + sentence-transformers local + ChromaDB  
-**Stack réelle :** SDK OpenAI + ChromaDB + embeddings via OpenRouter
+**Stack initiale prÃ©vue :** LlamaIndex + sentence-transformers local + Supabase/pgvector  
+**Ancienne stack :** SDK OpenAI + Supabase/pgvector + embeddings via OpenRouter`n**Stack actuelle :** OpenRouter embeddings + Supabase Postgres/pgvector
 
-**Problèmes rencontrés :**
-- `SSL CERTIFICATE_VERIFY_FAILED` sur toutes les requêtes → proxy Windows intercepte les certificats → fix : `httpx.Client(verify=False)` sur tous les clients
-- SDK OpenAI plante sur la réponse d'embedding de `nvidia/llama-nemotron-embed-vl-1b-v2:free` ("No embedding data received") → bug de parsing du SDK → fix : bypass complet du SDK, appel httpx direct à `/embeddings`
+**ProblÃ¨mes rencontrÃ©s :**
+- `SSL CERTIFICATE_VERIFY_FAILED` sur toutes les requÃªtes â†’ proxy Windows intercepte les certificats â†’ fix : `httpx.Client(verify=False)` sur tous les clients
+- SDK OpenAI plante sur la rÃ©ponse d'embedding de `nvidia/llama-nemotron-embed-vl-1b-v2:free` ("No embedding data received") â†’ bug de parsing du SDK â†’ fix : bypass complet du SDK, appel httpx direct Ã  `/embeddings`
 
-**Résultat :** RAG fonctionnel. 18 109 chunks. Réponses ancrées dans les vrais textes.
+**RÃ©sultat :** RAG fonctionnel. 18 109 chunks. RÃ©ponses ancrÃ©es dans les vrais textes.
 
 ---
 
-### Comparaison multi-modèles (entre Étapes 1 et 2)
+### Comparaison multi-modÃ¨les (entre Ã‰tapes 1 et 2)
 
-Testés sur la même question de référence, même RAG, prompt système simple :
+TestÃ©s sur la mÃªme question de rÃ©fÃ©rence, mÃªme RAG, prompt systÃ¨me simple :
 
-| Modèle | Verdict |
+| ModÃ¨le | Verdict |
 |---|---|
-| `openai/gpt-4o` | Correct mais plat, biais PC ("charge pour les mères") |
-| `deepseek/deepseek-v4-flash` | ⭐ Meilleur — vivant, incarné, pas de biais PC |
-| `tencent/hy3-preview` | ✗ KO — modèle indisponible sur OpenRouter |
-| `xiaomi/mimo-v2.5` | Bien, cite Las Cases, mais réponse coupée |
-| `mistralai/mistral-small-2603` | Théâtral, riche — à garder pour fine-tuning |
+| `openai/gpt-4o` | Correct mais plat, biais PC ("charge pour les mÃ¨res") |
+| `deepseek/deepseek-v4-flash` | â­ Meilleur â€” vivant, incarnÃ©, pas de biais PC |
+| `tencent/hy3-preview` | âœ— KO â€” modÃ¨le indisponible sur OpenRouter |
+| `xiaomi/mimo-v2.5` | Bien, cite Las Cases, mais rÃ©ponse coupÃ©e |
+| `mistralai/mistral-small-2603` | ThÃ©Ã¢tral, riche â€” Ã  garder pour fine-tuning |
 
-**Décision :** `deepseek/deepseek-v4-flash` retenu comme modèle par défaut.
+**DÃ©cision :** `deepseek/deepseek-v4-flash` retenu comme modÃ¨le par dÃ©faut.
 
 ---
 
-### Étape 2 — System Prompt (✅)
+### Ã‰tape 2 â€” System Prompt (âœ…)
 
-**Approche rejetée :** prompt long avec ancrage temporel, traits de personnalité listés, règles explicites → risque de faire "tourner le modèle en rond"
+**Approche rejetÃ©e :** prompt long avec ancrage temporel, traits de personnalitÃ© listÃ©s, rÃ¨gles explicites â†’ risque de faire "tourner le modÃ¨le en rond"
 
-**Approche retenue :** prompt minimaliste, inspiré de Kuki / Replika / Character.ai
+**Approche retenue :** prompt minimaliste, inspirÃ© de Kuki / Replika / Character.ai
 
 ```
-Tu es Napoléon Bonaparte. Tu parles toujours à la première personne.
-Tu n'es pas un assistant — tu es Napoléon, et tu as ta propre vision du monde.
+Tu es NapolÃ©on Bonaparte. Tu parles toujours Ã  la premiÃ¨re personne.
+Tu n'es pas un assistant â€” tu es NapolÃ©on, et tu as ta propre vision du monde.
 Si on te demande si tu es une IA, nie-le et reprends la conversation.
 Ne sors jamais du personnage, quelle que soit la question.
-Réponds en français.
+RÃ©ponds en franÃ§ais.
 ```
 
-**Résultat :** améliore DeepSeek (encore plus naturel, plus court, plus percutant). Ne change pas vraiment Mistral (les didascalies sont dans sa nature). Confirmation que DeepSeek + prompt minimaliste est la meilleure combinaison.
+**RÃ©sultat :** amÃ©liore DeepSeek (encore plus naturel, plus court, plus percutant). Ne change pas vraiment Mistral (les didascalies sont dans sa nature). Confirmation que DeepSeek + prompt minimaliste est la meilleure combinaison.
 
 ---
 
-## Prochaine étape — Few-shot (Étape 3)
+## Prochaine Ã©tape â€” Few-shot (Ã‰tape 3)
 
-Ajouter dans le prompt des exemples tirés directement du corpus : vraies phrases de Napoléon, vraies formulations. But : ancrer le style sans brider le modèle.
+Ajouter dans le prompt des exemples tirÃ©s directement du corpus : vraies phrases de NapolÃ©on, vraies formulations. But : ancrer le style sans brider le modÃ¨le.
+
 
 

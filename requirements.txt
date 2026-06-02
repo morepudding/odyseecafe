@@ -1,5 +1,4 @@
 openai
-chromadb
 Flask
 python-dotenv
 tweepy>=4.14

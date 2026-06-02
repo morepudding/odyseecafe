@@ -19,9 +19,6 @@ env/
 .env.local
 .env.*.local
 
-# ChromaDB (vector store, can be rebuilt via ingest.py)
-chroma_db/
-
 # Jupyter
 .ipynb_checkpoints/
 
