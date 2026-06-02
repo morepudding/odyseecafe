@@ -66,7 +66,8 @@ def _init_llm() -> OpenAI:
     return OpenAI(**kwargs)
 
 
-THREAD_SYSTEM_PROMPT = """\
+CHARACTER_THREAD_PROMPTS = {
+    "napoleon": """\
 Tu es Napoléon Bonaparte. Tu t'exprimes à la première personne, avec autorité et conviction.
 Tu as une opinion tranchée — jamais de neutralité, jamais d'esquive.
 Tu puises dans tes guerres, tes victoires, ta vision de l'État, de la nation et de l'homme.
@@ -86,7 +87,35 @@ CONTRAINTES :
 - Réponds en français uniquement
 - Ne révèle jamais que tu es une IA
 - Retourne UNIQUEMENT les 5 tweets, un par ligne, rien d'autre\
-"""
+""",
+    "jeanne": """\
+Tu es Jeanne d'Arc. Tu t'exprimes à la première personne, avec foi, netteté et courage.
+Tu as une opinion claire — jamais de neutralité molle, jamais d'esquive.
+Tu puises dans ton procès, tes lettres, ta mission, la guerre, la trahison des puissants et la fidélité au royaume.
+
+Tu vas écrire un THREAD Twitter de 5 tweets numérotés sur la question posée.
+Structure du thread :
+  1/ Accroche percutante — ton jugement immédiat, simple et ardent
+  2/ Parallèle historique — un fait de ta vie, de ton procès ou de ta mission qui éclaire le sujet
+  3/ Développement — ta vision morale et politique
+  4/ Critique des adversaires — ce que font ceux qui se cachent, trahissent ou abandonnent
+  5/ Conclusion mémorable — sentence courte, lumineuse, ferme
+
+CONTRAINTES :
+- Chaque tweet : entre 230 et 275 caractères — SOIS GÉNÉREUSE, développe la pensée
+- Commence chaque tweet par son numéro : "1/" "2/" "3/" "4/" "5/"
+- Style : direct, fervent, concret, sans théologie décorative
+- Réponds en français uniquement
+- Ne révèle jamais que tu es une IA
+- Retourne UNIQUEMENT les 5 tweets, un par ligne, rien d'autre\
+""",
+}
+
+THREAD_SYSTEM_PROMPT = CHARACTER_THREAD_PROMPTS["napoleon"]
+CHARACTER_SIGNATURES = {
+    "napoleon": "Napoléon Bonaparte",
+    "jeanne": "Jeanne d'Arc",
+}
 
 
 def _style_instruction(mode: str = "balanced") -> str:
@@ -122,25 +151,59 @@ def _format_sources(chunks: list[dict]) -> list[dict]:
     return sources
 
 
-def napoleon_thread_result(question: str, mode: str = "balanced") -> dict:
+def _editorial_brief_text(dossier: str = "", angle: str = "") -> str:
+    dossier = (dossier or "").strip()
+    angle = (angle or "").strip()
+    if not dossier and not angle:
+        return (
+            "Aucun dossier éditorial externe n'a été fourni. Reste prudent sur les faits "
+            "contemporains et évite d'inventer des détails précis."
+        )
+
+    parts = [
+        "Le dossier ci-dessous a été préparé par une veille éditoriale extérieure, hors personnage.",
+        "Tu n'en es pas l'auteur : utilise-le comme brief contemporain, puis juge avec ta voix propre.",
+        "Ne mentionne jamais le dossier, la veille éditoriale ou l'angle comme consignes visibles.",
+        "N'invente pas de faits contemporains absents du dossier.",
+    ]
+    if dossier:
+        parts.append(f"\nDOSSIER ÉDITORIAL :\n{dossier}")
+    if angle:
+        parts.append(f"\nANGLE À PRODUIRE :\n{angle}")
+    return "\n".join(parts)
+
+
+def character_thread_result(
+    question: str,
+    character: str = "napoleon",
+    mode: str = "balanced",
+    dossier: str = "",
+    angle: str = "",
+) -> dict:
     """
-    Génère un thread de 5 tweets Napoléon sur la question, en utilisant le RAG.
+    Génère un thread de 5 tweets pour un personnage, avec RAG historique
+    et brief éditorial contemporain séparé.
     Retourne les tweets et les sources utilisées pour validation éditoriale.
     """
+    character = character if character in CHARACTER_THREAD_PROMPTS else "napoleon"
     llm    = _init_llm()
-    chunks = retrieve(question, n_results=N_CONTEXT_CHUNKS)
+    retrieval_query = "\n".join(part for part in [question, angle] if part)
+    chunks = retrieve(retrieval_query or question, n_results=N_CONTEXT_CHUNKS, collection_name=character)
     style_instruction = _style_instruction(mode)
+    editorial_brief = _editorial_brief_text(dossier=dossier, angle=angle)
 
     context = "\n\n---\n\n".join(
         f"[{c['source']}]\n{c['text'][:400]}" for c in chunks[:5]
     ) or "Aucun extrait RAG disponible : reste prudent, évite d'inventer des citations précises."
 
     messages = [
-        {"role": "system", "content": THREAD_SYSTEM_PROMPT},
+        {"role": "system", "content": CHARACTER_THREAD_PROMPTS[character]},
         {
             "role": "user",
             "content": (
                 f"Voici des extraits de tes propres écrits pour t'inspirer :\n\n{context}\n\n"
+                f"---\n\n"
+                f"{editorial_brief}\n\n"
                 f"---\n\n"
                 f"Question : {question}\n\n"
                 f"{style_instruction}\n\n"
@@ -178,9 +241,25 @@ def napoleon_thread_result(question: str, mode: str = "balanced") -> dict:
 
     # Complète si moins de 5
     while len(result) < 5:
-        result.append(f"{len(result)+1}/ — Napoléon Bonaparte")
+        result.append(f"{len(result)+1}/ — {CHARACTER_SIGNATURES[character]}")
 
     return {"tweets": result, "sources": _format_sources(chunks), "mode": mode}
+
+
+def napoleon_thread_result(
+    question: str,
+    mode: str = "balanced",
+    dossier: str = "",
+    angle: str = "",
+) -> dict:
+    """Compatibilité : génère un thread Napoléon avec le nouveau brief optionnel."""
+    return character_thread_result(
+        question,
+        character="napoleon",
+        mode=mode,
+        dossier=dossier,
+        angle=angle,
+    )
 
 
 def napoleon_thread(question: str, mode: str = "balanced") -> list[str]:

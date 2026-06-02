@@ -31,7 +31,15 @@ APP_VERSION = (
     or "local"
 )[:12]
 
-_thread_state = {"question": None, "tweets": [], "sources": [], "mode": "balanced"}
+_thread_state = {
+    "question": None,
+    "tweets": [],
+    "sources": [],
+    "mode": "balanced",
+    "dossier": "",
+    "angle": "",
+    "character": "napoleon",
+}
 
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
@@ -40,26 +48,6 @@ CHARACTERS = [
     {"id": "voltaire",      "name": "Voltaire",           "emoji": "✒️",  "active": False, "era": "1694 – 1778"},
     {"id": "robespierre",   "name": "Robespierre",        "emoji": "🗡️", "active": False, "era": "1758 – 1794"},
 ]
-
-GROK_RADAR_PROMPT = """Analyse les sujets qui buzzent aujourd'hui sur X en France.
-
-Objectif : identifier les débats, polémiques et sujets d'actualité qui génèrent le plus de réactions sur X aujourd'hui.
-
-Ignore les buzz people, sport pur, divertissement léger, promos de marques et faits divers trop sordides.
-
-Donne-moi 5 sujets maximum.
-
-Pour chaque sujet, fournis :
-- Sujet brut qui buzze
-- Pourquoi ça buzz sur X
-- Hashtags, mots-clés ou comptes associés si visibles
-- Type de débat : politique / société / international / justice / école / armée / autre
-- Niveau de viralité estimé : faible / moyen / fort
-- Niveau de polarisation : faible / moyen / fort
-- Résumé du contexte en 3 lignes maximum
-- 2 ou 3 formulations possibles du sujet sous forme de question polémique
-
-Réponds en français, format clair, sans analyse historique et sans te mettre dans la peau de Napoléon."""
 
 THREAD_FALLBACK_PROMPT = """Tu es Napoléon Bonaparte. Tu t'exprimes à la première personne, avec autorité et conviction.
 Tu écris un thread Twitter de 5 tweets numérotés sur la question posée.
@@ -114,6 +102,13 @@ HTML = """
       border-bottom: 1px solid #1e2d45; margin-bottom: 1rem;
     }
     .sidebar-logo span { color: #64748b; font-weight: 400; font-size: .75rem; display: block; }
+    .sidebar-link {
+      display: block; color: #cbd5e1; text-decoration: none;
+      padding: .55rem .6rem; border-radius: 8px; font-size: .82rem;
+      font-weight: 650; margin-bottom: .75rem; background: #14233a;
+      border: 1px solid #1e2d45;
+    }
+    .sidebar-link:hover { background: #1e2d45; }
     .section-label {
       font-size: .65rem; font-weight: 700; letter-spacing: .12em;
       text-transform: uppercase; color: #475569; padding: .4rem .5rem .3rem;
@@ -251,6 +246,14 @@ HTML = """
     }
     .composer textarea:focus { border-color: #3b82f6; }
     .composer-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+    .field-label {
+      font-size: .66rem; font-weight: 750; letter-spacing: .08em;
+      text-transform: uppercase; color: #64748b; margin-bottom: .35rem;
+    }
+    .brief-grid { display: grid; gap: .7rem; }
+    .brief-grid textarea { min-height: 110px; }
+    #editorial-dossier { min-height: 190px; }
+    #editorial-angle { min-height: 98px; }
     .theme-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: .55rem; margin: .35rem 0 1.25rem;
@@ -275,24 +278,6 @@ HTML = """
     .source-title { color: #f8fafc; font-size: .78rem; font-weight: 750; margin-bottom: .25rem; }
     .source-meta { color: #64748b; font-size: .68rem; margin-bottom: .35rem; }
     .source-excerpt { color: #94a3b8; font-size: .76rem; line-height: 1.45; }
-
-    .radar-panel {
-      display: grid; gap: 1rem;
-    }
-    .radar-help {
-      color: #94a3b8; font-size: .84rem; line-height: 1.55;
-      background: #0d1829; border: 1px solid #1e2d45; border-radius: 10px;
-      padding: .85rem 1rem;
-    }
-    .prompt-box, .grok-output {
-      width: 100%; min-height: 250px; resize: vertical;
-      background: #080f1a; border: 1px solid #1e2d45; border-radius: 10px;
-      color: #e2e8f0; padding: .9rem 1rem; font: inherit; line-height: 1.5;
-      outline: none;
-    }
-    .grok-output { min-height: 180px; }
-    .prompt-box:focus, .grok-output:focus { border-color: #3b82f6; }
-    .btn-grok { background: #14532d; color: #86efac; }
 
     /* ── CHAT TAB ── */
     .chat-window {
@@ -503,7 +488,6 @@ HTML = """
       .question-box,
       .tweet-box,
       .sources-panel,
-      .radar-help,
       .chat-window {
         border-radius: 14px;
       }
@@ -512,9 +496,7 @@ HTML = """
         padding: .75rem;
       }
 
-      .composer textarea,
-      .prompt-box,
-      .grok-output {
+      .composer textarea {
         font-size: 16px;
       }
 
@@ -561,8 +543,8 @@ HTML = """
         padding: .25rem .75rem;
       }
 
-      .prompt-box {
-        min-height: 220px;
+      #editorial-dossier {
+        min-height: 170px;
       }
 
       .chat-window {
@@ -595,6 +577,7 @@ HTML = """
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sidebar-logo">OdyséeCafé<span>Les immortels tweetent.</span></div>
+  <a class="sidebar-link" href="/dossier">Sujet du jour</a>
   <div class="section-label">Personnages</div>
   {% for c in characters %}
   <div class="char-item {% if c.active %}{% if c.id == active_id %}active{% endif %}{% else %}locked{% endif %}"
@@ -640,24 +623,38 @@ HTML = """
   <div id="active-panel">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('thread', this)">🧵 Générateur de threads</button>
-      <button class="tab-btn"        onclick="switchTab('radar',  this)">📡 Radar Grok</button>
       <button class="tab-btn"        onclick="switchTab('chat',   this)">💬 Chat secondaire</button>
     </div>
 
     <!-- THREAD TAB -->
     <div class="tab-panel active" id="tab-thread" style="padding-top:1.25rem">
-      <div class="label">Sujet polémique à traiter</div>
+      <div class="label">Brief éditorial</div>
       <div class="composer">
-        <textarea id="manual-question" placeholder="Ex : Faut-il rétablir le service militaire obligatoire ?">{{ question }}</textarea>
+        <div>
+          <div class="field-label">Sujet polémique</div>
+          <textarea id="manual-question" placeholder="Ex : Faut-il rétablir le service militaire obligatoire ?">{{ question }}</textarea>
+        </div>
+
+        <div class="brief-grid">
+          <div>
+            <div class="field-label">Dossier</div>
+            <textarea id="editorial-dossier" placeholder="Contexte factuel, chronologie, précédents comparables, contre-exemples, lois, déclarations, sources...">{{ dossier }}</textarea>
+          </div>
+          <div>
+            <div class="field-label">Angle</div>
+            <textarea id="editorial-angle" placeholder="Émotion à provoquer, question à laisser au lecteur, tension morale ou politique à faire sentir.">{{ angle }}</textarea>
+          </div>
+        </div>
+
         <div class="composer-actions">
-          <button class="act btn-regen" onclick="doRegen('balanced', true, this)">Sujet du jour</button>
-          <button class="act btn-all" onclick="doRegen('balanced', false, this)">Générer ce sujet</button>
-          <button class="act btn-tone" onclick="doRegen('sharp', false, this)">Plus tranchant</button>
-          <button class="act btn-history" onclick="doRegen('historical', false, this)">Plus historique</button>
+          <button class="act btn-regen" onclick="loadTopic(this)">Charger le brief</button>
+          <button class="act btn-all" onclick="doRegen('balanced', this)">Générer ce brief</button>
+          <button class="act btn-tone" onclick="doRegen('sharp', this)">Plus tranchant</button>
+          <button class="act btn-history" onclick="doRegen('historical', this)">Plus historique</button>
         </div>
       </div>
 
-      <div class="label">Thèmes Napoléon validés</div>
+      <div class="label">Thèmes éditoriaux validés</div>
       <div class="theme-grid">
         {% for theme in editorial_themes %}
         <div class="theme-card">
@@ -691,7 +688,7 @@ HTML = """
       </div>
 
       <div class="actions">
-        <button class="act btn-regen" onclick="doRegen('balanced', false, this)">🔄 Regénérer</button>
+        <button class="act btn-regen" onclick="doRegen('balanced', this)">🔄 Regénérer</button>
         <button class="act btn-all"   onclick="copyAll()">📋 Copier tout</button>
         <button class="act btn-x"     onclick="window.open('https://x.com/compose/post','_blank')">🐦 Ouvrir X</button>
       </div>
@@ -701,9 +698,11 @@ HTML = """
         <div class="source-list" id="sources">
           {% for source in sources %}
           <div class="source-card">
-            <div class="source-title">{{ source.source }}</div>
-            <div class="source-meta">distance {{ source.distance }}</div>
-            <div class="source-excerpt">{{ source.excerpt }}</div>
+            <div class="source-title">{{ source.source or source.title or source.url or "Source" }}</div>
+            <div class="source-meta">
+              {% if source.distance is defined %}distance {{ source.distance }}{% else %}{{ source.url or "" }}{% endif %}
+            </div>
+            <div class="source-excerpt">{{ source.excerpt or source.published or "" }}</div>
           </div>
           {% else %}
           <div class="source-card">
@@ -711,30 +710,6 @@ HTML = """
             <div class="source-excerpt">La collection ChromaDB est vide. Lance l'ingestion du corpus pour réactiver le RAG.</div>
           </div>
           {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <!-- RADAR GROK TAB -->
-    <div class="tab-panel" id="tab-radar" style="padding-top:1.25rem">
-      <div class="radar-panel">
-        <div>
-          <div class="label">Prompt Grok pour analyser X</div>
-          <div class="radar-help">
-            Copie ce prompt dans Grok. Grok récupère le buzz X brut ; OdyséeCafé transformera ensuite ta sélection en angle Napoléon.
-          </div>
-        </div>
-
-        <textarea class="prompt-box" id="grok-prompt" readonly>{{ grok_prompt }}</textarea>
-
-        <div class="actions">
-          <button class="act btn-grok" onclick="copyGrokPrompt(this)">📋 Copier le prompt Grok</button>
-          <button class="act btn-x" onclick="window.open('https://x.com/i/grok','_blank')">Ouvrir Grok</button>
-        </div>
-
-        <div>
-          <div class="label">Réponse Grok à coller ici</div>
-          <textarea class="grok-output" id="grok-output" placeholder="Colle ici la réponse de Grok. Prochaine étape : transformer cette réponse en 5 sujets Napoléon exploitables."></textarea>
         </div>
       </div>
     </div>
@@ -842,10 +817,13 @@ HTML = """
     (sources || []).forEach((s) => {
       const card = document.createElement('div');
       card.className = 'source-card';
+      const title = s.source || s.title || s.url || 'Source';
+      const meta = s.distance !== undefined ? `distance ${s.distance}` : (s.url || '');
+      const excerpt = s.excerpt || s.published || '';
       card.innerHTML = `
-        <div class="source-title">${String(s.source || '').replace(/</g,'&lt;')}</div>
-        <div class="source-meta">distance ${s.distance ?? '—'}</div>
-        <div class="source-excerpt">${String(s.excerpt || '').replace(/</g,'&lt;')}</div>`;
+        <div class="source-title">${String(title).replace(/</g,'&lt;')}</div>
+        <div class="source-meta">${String(meta).replace(/</g,'&lt;')}</div>
+        <div class="source-excerpt">${String(excerpt).replace(/</g,'&lt;')}</div>`;
       root.appendChild(card);
     });
     if (!sources || sources.length === 0) {
@@ -858,27 +836,63 @@ HTML = """
     }
   }
 
-  function doRegen(mode = 'balanced', useTrending = false, btn = null) {
+  function applyBrief(d) {
+    document.getElementById('question').textContent = d.question || '';
+    document.getElementById('manual-question').value = d.question || '';
+    document.getElementById('editorial-dossier').value = d.dossier || '';
+    document.getElementById('editorial-angle').value = d.angle || '';
+    renderSources(d.sources || []);
+  }
+
+  function loadTopic(btn = null) {
+    btn = btn || document.querySelector('.btn-regen');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Chargement…';
+    fetch('/api/topic', {cache: 'no-store'})
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          applyBrief(d);
+        } else {
+          alert('Erreur : ' + d.error);
+        }
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
+      })
+      .catch(() => {
+        alert('Erreur : impossible de charger le brief.');
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
+      });
+  }
+
+  function doRegen(mode = 'balanced', btn = null) {
     btn = btn || document.querySelector('.btn-regen');
     const manualQuestion = document.getElementById('manual-question').value.trim();
+    const dossier = document.getElementById('editorial-dossier').value.trim();
+    const angle = document.getElementById('editorial-angle').value.trim();
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Génération…';
     fetch('/api/thread', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: useTrending ? '' : manualQuestion, mode}),
+      body: JSON.stringify({
+        question: manualQuestion,
+        dossier,
+        angle,
+        character: currentChar.id,
+        mode,
+      }),
     })
       .then(r => r.json())
       .then(d => {
         if (d.ok) {
-          document.getElementById('question').textContent = d.question;
-          document.getElementById('manual-question').value = d.question;
+          applyBrief(d);
           d.tweets.forEach((t, idx) => {
             const i = idx + 1;
             document.getElementById('tweet-' + i).innerText = t;
             updateCount(i);
           });
-          renderSources(d.sources);
         } else { alert('Erreur : ' + d.error); }
         btn.disabled = false;
         btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
@@ -893,19 +907,6 @@ HTML = """
   document.querySelectorAll('.composer .act, .actions .btn-regen').forEach((btn) => {
     btn.dataset.originalLabel = btn.innerHTML;
   });
-
-  function copyGrokPrompt(btn) {
-    const prompt = document.getElementById('grok-prompt').value;
-    navigator.clipboard.writeText(prompt).then(() => {
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓ Prompt copié';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.innerHTML = orig;
-        btn.classList.remove('copied');
-      }, 1800);
-    });
-  }
 
   // ── CHAT ──
   const chatHistory = [];
@@ -1018,15 +1019,242 @@ HTML = """
 """
 
 
+DOSSIER_HTML = """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>OdyséeCafé — Sujet du jour</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #080f1a; color: #e2e8f0; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      width: min(980px, calc(100% - 2rem)); margin: 0 auto;
+      padding: 2rem 0 2.5rem; display: grid; gap: 1rem;
+    }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid #1e2d45;
+    }
+    .brand { color: #f59e0b; font-size: 1rem; font-weight: 850; }
+    .nav-link {
+      color: #cbd5e1; text-decoration: none; border: 1px solid #1e2d45;
+      border-radius: 8px; padding: .45rem .75rem; font-size: .82rem;
+      background: #0d1829;
+    }
+    h1 { font-size: 1.35rem; line-height: 1.25; }
+    .meta { color: #64748b; font-size: .78rem; margin-top: .25rem; }
+    .panel {
+      background: #0d1829; border: 1px solid #1e2d45;
+      border-radius: 10px; padding: 1rem; display: grid; gap: .8rem;
+    }
+    .label {
+      font-size: .68rem; font-weight: 750; letter-spacing: .1em;
+      text-transform: uppercase; color: #64748b;
+    }
+    .question {
+      color: #f8fafc; font-size: 1rem; line-height: 1.55;
+      background: #08111f; border: 1px solid #1e2d45;
+      border-radius: 8px; padding: .9rem;
+    }
+    .collect-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .6rem;
+    }
+    .collect-card {
+      background: #08111f; border: 1px solid #1e2d45;
+      border-radius: 8px; padding: .75rem; color: #cbd5e1;
+      font-size: .8rem; line-height: 1.45;
+    }
+    .collect-title { color: #f8fafc; font-weight: 800; margin-bottom: .25rem; }
+    .collect-intent { color: #94a3b8; margin-top: .25rem; }
+    textarea {
+      width: 100%; resize: vertical; min-height: 210px;
+      background: #08111f; border: 1px solid #1e2d45; border-radius: 8px;
+      color: #e2e8f0; padding: .85rem; font: inherit; line-height: 1.5;
+      outline: none;
+    }
+    textarea:focus { border-color: #3b82f6; }
+    #angle { min-height: 120px; }
+    .actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+    button, .button-link {
+      border: 0; border-radius: 8px; padding: .65rem 1rem;
+      font-size: .88rem; font-weight: 700; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center;
+      justify-content: center; min-height: 42px;
+    }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .primary { background: #1d4ed8; color: white; }
+    .secondary { background: #1e2d45; color: #e2e8f0; }
+    .success { background: #14532d; color: #86efac; }
+    .status { color: #94a3b8; font-size: .82rem; min-height: 1.2rem; }
+    .spinner {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: white;
+      border-radius: 50%; animation: spin .6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 720px) {
+      .page { width: 100%; padding: 1rem .85rem 1.4rem; }
+      .topbar { align-items: flex-start; }
+      .actions { display: grid; grid-template-columns: 1fr; }
+      textarea { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div>
+        <div class="brand">OdyséeCafé</div>
+      <div class="meta">Collecte d'abord, écriture ensuite</div>
+      </div>
+      <a class="nav-link" href="/">Générateur</a>
+    </div>
+
+    <section class="panel">
+      <div>
+        <div class="label">Sujet du jour</div>
+        <h1>{{ question }}</h1>
+        <div class="meta">Origine : {{ origin }}</div>
+      </div>
+      <div class="question" id="question">{{ question }}</div>
+    </section>
+
+    <section class="panel">
+      <div class="label">Matrice de collecte universelle</div>
+      <div class="collect-grid">
+        <div class="collect-card">
+          <div class="collect-title">1. Faits chauds</div>
+          Ce qui vient de se passer : date, lieu, déclencheur, premiers bilans.
+          <div class="collect-intent">Intention : établir le socle factuel immédiat.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">2. Précédents historiques</div>
+          Épisodes similaires, archives, répétitions, anciens scandales, vieilles promesses.
+          <div class="collect-intent">Intention : voir si le fait est un accident ou un symptôme.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">3. Dispositifs, institutions ou mécanismes en place</div>
+          Organisation concrète : services responsables, procédures, contrôles, moyens prévus.
+          <div class="collect-intent">Intention : comprendre qui était censé agir et comment.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">4. Lois, règlements et décisions publiques</div>
+          Textes applicables, arrêtés, rapports, décisions administratives ou judiciaires.
+          <div class="collect-intent">Intention : savoir ce que le droit permet déjà.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">5. Déclarations politiques ou polémiques</div>
+          Ministres, élus, syndicats, experts, éditorialistes, prises de position anciennes.
+          <div class="collect-intent">Intention : trouver les contradictions et lignes de fracture.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">6. Comparaisons médiatiques</div>
+          Traitement du même type de fait selon contexte, camp politique, groupe ou époque.
+          <div class="collect-intent">Intention : tester le deux poids deux mesures.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">7. Contre-exemples</div>
+          Cas similaires mieux gérés, événements calmes, politiques qui ont fonctionné.
+          <div class="collect-intent">Intention : éviter le récit à sens unique.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">8. Acteurs impliqués</div>
+          Institutions, groupes, associations, entreprises, responsables, opposants.
+          <div class="collect-intent">Intention : identifier qui gagne, perd, parle ou se tait.</div>
+        </div>
+        <div class="collect-card">
+          <div class="collect-title">9. Chiffres simples et bilans</div>
+          Ordres de grandeur : personnes touchées, coûts, interpellations, budgets, évolution.
+          <div class="collect-intent">Intention : donner une prise concrète au lecteur.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="label">Dossier</div>
+      <textarea id="dossier" placeholder="Le dossier éditorial apparaîtra ici.">{{ dossier }}</textarea>
+    </section>
+
+    <section class="panel">
+      <div class="label">Angle</div>
+      <textarea id="angle" placeholder="L'angle éditorial apparaîtra ici.">{{ angle }}</textarea>
+      <div class="actions">
+        <button class="secondary" id="save-btn" onclick="saveBrief(this)">Enregistrer le brief</button>
+        <a class="button-link success" href="/">Ouvrir le générateur</a>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+  </main>
+
+  <script>
+    const topic = {
+      question: {{ question_json | safe }},
+      character: {{ character_json | safe }},
+    };
+
+    function status(text) {
+      document.getElementById('status').textContent = text || '';
+    }
+
+    function setBusy(btn, text) {
+      btn.disabled = true;
+      btn.dataset.originalLabel = btn.dataset.originalLabel || btn.innerHTML;
+      btn.innerHTML = '<span class="spinner"></span>' + text;
+    }
+
+    function clearBusy(btn) {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalLabel || btn.textContent;
+    }
+
+    function saveBrief(btn) {
+      setBusy(btn, 'Enregistrement...');
+      fetch('/api/topic', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          question: topic.question,
+          dossier: document.getElementById('dossier').value.trim(),
+          angle: document.getElementById('angle').value.trim(),
+          sources: [],
+          character: topic.character,
+          origin: 'dossier_page',
+        }),
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) throw new Error(d.error || 'Erreur inconnue');
+        status('Brief enregistré.');
+      })
+      .catch(err => status('Erreur : ' + err.message))
+      .finally(() => clearBusy(btn));
+    }
+  </script>
+</body>
+</html>
+"""
+
+
 # ── ROUTES ────────────────────────────────────────────────────────────────────
 
 def _get_thread_state():
     if not _thread_state["question"]:
         current_topic = _load_current_topic()
-        q = (current_topic or {}).get("question") or "Colle ici un sujet issu du Radar Grok."
+        q = (current_topic or {}).get("question") or "Colle ici un sujet éditorial."
         _thread_state["question"] = q
         _thread_state["tweets"] = [""] * 5
         _thread_state["sources"] = (current_topic or {}).get("sources") or []
+        _thread_state["dossier"] = (current_topic or {}).get("dossier") or ""
+        _thread_state["angle"] = (current_topic or {}).get("angle") or ""
+        _thread_state["character"] = (current_topic or {}).get("character") or "napoleon"
     return _thread_state
 
 
@@ -1040,6 +1268,10 @@ def _load_current_topic() -> dict | None:
             return None
         return {
             "question": question,
+            "dossier": (data.get("dossier") or "").strip(),
+            "angle": (data.get("angle") or "").strip(),
+            "character": (data.get("character") or "napoleon").strip().lower(),
+            "origin": (data.get("origin") or "manual").strip(),
             "sources": data.get("sources") if isinstance(data.get("sources"), list) else [],
         }
     except Exception:
@@ -1056,12 +1288,22 @@ def add_cache_headers(response):
     return response
 
 
-def _save_current_topic(question: str, sources: list[dict] | None = None, origin: str = "manual") -> None:
+def _save_current_topic(
+    question: str,
+    sources: list[dict] | None = None,
+    origin: str = "manual",
+    dossier: str = "",
+    angle: str = "",
+    character: str = "napoleon",
+) -> None:
     if os.getenv("VERCEL"):
         return
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
         "question": question.strip(),
+        "dossier": dossier.strip(),
+        "angle": angle.strip(),
+        "character": character,
         "origin": origin,
         "sources": sources or [],
     }
@@ -1071,7 +1313,13 @@ def _save_current_topic(question: str, sources: list[dict] | None = None, origin
     )
 
 
-def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
+def _fallback_thread_result(
+    question: str,
+    mode: str = "balanced",
+    character: str = "napoleon",
+    dossier: str = "",
+    angle: str = "",
+) -> dict:
     import os
     import re
     import httpx
@@ -1083,6 +1331,27 @@ def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
         "historical": "Ton plus historique, avec un parallèle clair avec ton époque.",
     }.get(mode, "Ton équilibré : incarné, clair, éditorial.")
 
+    if character == "jeanne":
+        system_prompt = """Tu es Jeanne d'Arc. Tu t'exprimes à la première personne, avec foi, courage et netteté.
+Tu écris un thread Twitter de 5 tweets numérotés sur la question posée.
+Chaque tweet doit rester sous 280 caractères. Français uniquement. Ne révèle jamais que tu es une IA.
+Retourne uniquement les 5 tweets."""
+        signature = "Jeanne d'Arc"
+    else:
+        system_prompt = THREAD_FALLBACK_PROMPT
+        signature = "Napoléon Bonaparte"
+
+    brief = "\n\n".join(
+        part for part in [
+            f"Question : {question}",
+            f"Dossier éditorial externe :\n{dossier.strip()}" if dossier.strip() else "",
+            f"Angle éditorial :\n{angle.strip()}" if angle.strip() else "",
+            "Ne mentionne jamais le dossier, la veille éditoriale ou l'angle comme consignes visibles.",
+            "N'invente pas de faits contemporains absents du dossier.",
+            style,
+        ] if part
+    )
+
     llm = OpenAI(
         api_key=openrouter_api_key() or "missing-key",
         base_url="https://openrouter.ai/api/v1",
@@ -1092,8 +1361,8 @@ def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
     response = llm.chat.completions.create(
         model=env_value("OPENROUTER_MODEL", "deepseek/deepseek-v4-flash"),
         messages=[
-            {"role": "system", "content": THREAD_FALLBACK_PROMPT},
-            {"role": "user", "content": f"Question : {question}\n\n{style}"},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": brief},
         ],
         temperature=0.85,
         max_tokens=700,
@@ -1110,7 +1379,7 @@ def _fallback_thread_result(question: str, mode: str = "balanced") -> dict:
             t = (t[:cut] if cut != -1 else t[:278]) + "…"
         result.append(t)
     while len(result) < 5:
-        result.append(f"{len(result) + 1}/ — Napoléon Bonaparte")
+        result.append(f"{len(result) + 1}/ — {signature}")
     return {"tweets": result, "sources": [], "mode": mode}
 
 
@@ -1135,13 +1404,37 @@ def index():
         characters_json = json.dumps(CHARACTERS),
         active_id       = "napoleon",
         question        = state["question"],
+        dossier         = state["dossier"],
+        angle           = state["angle"],
         tweets          = list(enumerate(state["tweets"], 1)),
         sources         = state["sources"],
         editorial_themes= list_editorial_themes("napoleon"),
-        grok_prompt     = GROK_RADAR_PROMPT,
         chunk_count     = chunk_count,
         model           = model,
         app_version     = APP_VERSION,
+    )
+
+
+@app.route("/dossier")
+def dossier_page():
+    current_topic = _load_current_topic() or _get_thread_state()
+    question = (current_topic or {}).get("question") or "Aucun sujet du jour."
+    sources = (current_topic or {}).get("sources") or []
+    dossier = (current_topic or {}).get("dossier") or ""
+    angle = (current_topic or {}).get("angle") or ""
+    origin = (current_topic or {}).get("origin") or "manual"
+    character = (current_topic or {}).get("character") or "napoleon"
+
+    return render_template_string(
+        DOSSIER_HTML,
+        question=question,
+        question_json=json.dumps(question, ensure_ascii=False),
+        sources=sources,
+        sources_json=json.dumps(sources, ensure_ascii=False),
+        character_json=json.dumps(character, ensure_ascii=False),
+        dossier=dossier,
+        angle=angle,
+        origin=origin,
     )
 
 
@@ -1204,23 +1497,58 @@ def api_thread():
     try:
         data = request.get_json(silent=True) or {}
         q = (data.get("question") or "").strip()
+        dossier = (data.get("dossier") or "").strip()
+        angle = (data.get("angle") or "").strip()
+        character = (data.get("character") or "napoleon").strip().lower()
+        if character not in {"napoleon", "jeanne"}:
+            character = "napoleon"
         mode = (data.get("mode") or "balanced").strip()
         if mode not in {"balanced", "sharp", "historical"}:
             mode = "balanced"
         if not q:
-            from twitter_trending import get_daily_polemic_question
-            q = get_daily_polemic_question()
+            return jsonify(ok=False, error="Sujet vide"), 400
         try:
-            from daily_napoleon_tweet import napoleon_thread_result
-            result = napoleon_thread_result(q, mode=mode)
+            from daily_napoleon_tweet import character_thread_result
+            result = character_thread_result(
+                q,
+                character=character,
+                mode=mode,
+                dossier=dossier,
+                angle=angle,
+            )
         except Exception:
-            result = _fallback_thread_result(q, mode=mode)
+            result = _fallback_thread_result(
+                q,
+                mode=mode,
+                character=character,
+                dossier=dossier,
+                angle=angle,
+            )
         _thread_state["question"] = q
         _thread_state["tweets"]   = result["tweets"]
         _thread_state["sources"]  = result["sources"]
         _thread_state["mode"]     = result["mode"]
-        _save_current_topic(q, result["sources"], origin="thread")
-        return jsonify(ok=True, question=q, tweets=result["tweets"], sources=result["sources"], mode=result["mode"])
+        _thread_state["dossier"]  = dossier
+        _thread_state["angle"]    = angle
+        _thread_state["character"] = character
+        _save_current_topic(
+            q,
+            result["sources"],
+            origin="thread",
+            dossier=dossier,
+            angle=angle,
+            character=character,
+        )
+        return jsonify(
+            ok=True,
+            question=q,
+            dossier=dossier,
+            angle=angle,
+            character=character,
+            tweets=result["tweets"],
+            sources=result["sources"],
+            mode=result["mode"],
+        )
     except Exception as e:
         return jsonify(ok=False, error=str(e))
 
@@ -1229,21 +1557,51 @@ def api_thread():
 def api_topic():
     if request.method == "GET":
         state = _get_thread_state()
-        return jsonify(ok=True, question=state["question"], sources=state["sources"], mode=state["mode"])
+        return jsonify(
+            ok=True,
+            question=state["question"],
+            dossier=state["dossier"],
+            angle=state["angle"],
+            character=state["character"],
+            sources=state["sources"],
+            mode=state["mode"],
+        )
 
     data = request.get_json(silent=True) or {}
     q = (data.get("question") or "").strip()
     if not q:
         return jsonify(ok=False, error="Question vide"), 400
 
+    dossier = (data.get("dossier") or "").strip()
+    angle = (data.get("angle") or "").strip()
+    character = (data.get("character") or "napoleon").strip().lower()
+    if character not in {"napoleon", "jeanne"}:
+        character = "napoleon"
     sources = data.get("sources") if isinstance(data.get("sources"), list) else []
     origin = (data.get("origin") or "manual").strip()[:40]
     _thread_state["question"] = q
     _thread_state["tweets"] = [""] * 5
     _thread_state["sources"] = sources
     _thread_state["mode"] = "balanced"
-    _save_current_topic(q, sources, origin=origin)
-    return jsonify(ok=True, question=q, sources=sources)
+    _thread_state["dossier"] = dossier
+    _thread_state["angle"] = angle
+    _thread_state["character"] = character
+    _save_current_topic(
+        q,
+        sources,
+        origin=origin,
+        dossier=dossier,
+        angle=angle,
+        character=character,
+    )
+    return jsonify(
+        ok=True,
+        question=q,
+        dossier=dossier,
+        angle=angle,
+        character=character,
+        sources=sources,
+    )
 
 
 @app.route("/api/chat", methods=["POST"])
