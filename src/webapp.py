@@ -376,6 +376,15 @@ HTML = """
       padding: .9rem 1rem; margin-bottom: 1.5rem;
       font-size: .95rem; line-height: 1.55; color: #f1f5f9;
     }
+    .workflow-note {
+      display: grid; gap: .45rem;
+      background: #111827; border: 1px solid #2b4268; border-radius: 10px;
+      padding: .8rem .9rem; color: #cbd5e1; font-size: .82rem; line-height: 1.45;
+    }
+    .workflow-note strong { color: #f8fafc; }
+    .workflow-note ol {
+      margin: 0; padding-left: 1.15rem; display: grid; gap: .25rem;
+    }
     .thread { display: flex; flex-direction: column; margin-bottom: 1.5rem; }
     .tweet-row { display: flex; gap: .75rem; align-items: stretch; }
     .thread-line {
@@ -814,6 +823,16 @@ HTML = """
     <div class="tab-panel active" id="tab-thread" style="padding-top:1.25rem">
       <div class="label">Brief éditorial</div>
       <div class="composer">
+        <div class="workflow-note">
+          <strong>Workflow du sujet du jour</strong>
+          <ol>
+            <li>Choisir un sujet exploitable.</li>
+            <li>Lire la matrice de collecte dans Odyssée Café.</li>
+            <li>Compléter le dossier avec faits, acteurs, chiffres, précédents, comparaisons et contre-exemples.</li>
+            <li>Poser les sources, les fragilités et la plainte productive avant de générer.</li>
+          </ol>
+        </div>
+
         <div>
           <div class="field-label">Sujet polémique</div>
           <textarea id="manual-question" placeholder="Ex : Faut-il rétablir le service militaire obligatoire ?">{{ question }}</textarea>
@@ -1242,6 +1261,15 @@ DOSSIER_HTML = """
       background: #08111f; border: 1px solid #1e2d45;
       border-radius: 8px; padding: .9rem;
     }
+    .workflow-note {
+      display: grid; gap: .45rem;
+      background: #111827; border: 1px solid #2b4268; border-radius: 8px;
+      padding: .85rem; color: #cbd5e1; font-size: .82rem; line-height: 1.45;
+    }
+    .workflow-note strong { color: #f8fafc; }
+    .workflow-note ol {
+      margin: 0; padding-left: 1.15rem; display: grid; gap: .25rem;
+    }
     .collect-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: .6rem;
@@ -1379,6 +1407,15 @@ DOSSIER_HTML = """
 
     <section class="panel">
       <div class="label">Matrice de collecte universelle</div>
+      <div class="workflow-note">
+        <strong>Job quotidien Odyssée Café</strong>
+        <ol>
+          <li>Constituer le sujet du jour et vérifier qu'il est exploitable.</li>
+          <li>Lire cette matrice avant de remplir le dossier.</li>
+          <li>Compléter chaque bloc utile avec faits, institutions, acteurs, chiffres, précédents, comparaisons et contre-exemples.</li>
+          <li>Noter les sources, les fragilités et ce qui a été pénible mais productif dans le mode opératoire IA.</li>
+        </ol>
+      </div>
       <div class="collect-grid">
         <div class="collect-card">
           <div class="collect-title">1. Faits chauds</div>
