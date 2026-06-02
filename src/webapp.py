@@ -203,170 +203,34 @@ En 5 a 8 lignes : ce qui s'est passe, ou, quand, qui est concerne, pourquoi c'es
   Potentiel buzz : /5
 - Risque de diffamation / accusation trop directe :
   Pertinence au sujet : /5
-  Potentiel buzz : /5"""
+  Potentiel buzz : /5
 
-MOCK_DOSSIER = """# Dossier editorial mock
+## Mode operatoire IA
+- Objectif de collecte :
+- Requetes ou pistes lancees :
+- Sources consultees :
+- Sources ecartees :
+- Temps passe / cout de recherche :
+- Pistes longues peu utiles :
+- Arbitrage de priorisation :
+- Niveau de confiance global :
+- Avis honnete de l'IA :
+- La ou l'IA a galere :
+- Ce qui reste fragile dans le dossier :
+- Ce que l'IA trouve ameliorable dans son workflow :
+- Amelioration proposee pour la prochaine collecte :"""
 
-## Sujet
-- Question : Apres un scandale dans une institution scolaire, faut-il renforcer le controle de l'Etat ?
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-- Origine : Sujet de test pour visualiser la constitution d'un dossier.
-  Pertinence au sujet : 3/5
-  Potentiel buzz : 1/5
-- Date de collecte : Mock local, non source.
-  Pertinence au sujet : 2/5
-  Potentiel buzz : 1/5
+DEFAULT_DOSSIER_TEMPLATE = """# Dossier editorial a constituer
 
-## Resume factuel court
-- Resume : Une affaire test met en scene une institution accusee d'avoir laisse durer des alertes. Le debat porte moins sur un fait isole que sur la chaine de responsabilite : direction, tutelle, controle public, silence des acteurs et reaction politique.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
+## Instructions de constitution
+- Remplir ce dossier uniquement avec des faits trouves pendant la collecte reelle.
+- Ne pas reprendre ces instructions comme matiere factuelle du dossier.
+- Ne pas inventer de source, de date, de chiffre, de citation ou de responsabilite nominative.
+- Mettre une note Pertinence/Buzz seulement sur les elements editoriaux, jamais sur le mode operatoire IA.
+- Laisser vide ou signaler "non trouve" quand une information n'a pas ete verifiee.
+- Privilegier les sources primaires et les articles avec sources ; ecarter les reprises sans element nouveau.
 
-## 1. Faits chauds
-- Date / lieu : Evenement recent, dans un etablissement scolaire fictif.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 2/5
-- Declencheur : Publication d'un temoignage et reprise mediatique.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-- Dernier etat connu : Des responsables demandent une enquete administrative.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Ce qui est confirme : Des alertes auraient existe avant la polemique publique.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-- Ce qui reste incertain : Qui savait quoi, depuis quand, et avec quel pouvoir d'action.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-
-## 2. Precedents historiques
-- Cas comparable 1 : Une ancienne affaire ou l'administration a ete accusee d'avoir reagi trop tard.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Cas comparable 2 : Une crise similaire ayant mene a une reforme de controle.
-  Pertinence au sujet : 3/5
-  Potentiel buzz : 2/5
-- Ancienne promesse / ancien scandale / ancienne reforme : Promesse de transparence deja formulee apres une crise precedente.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-
-## 3. Dispositifs et institutions en place
-- Institutions responsables : Direction, autorite de tutelle, inspection, ministere.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 3/5
-- Procedures existantes : Signalement, enquete interne, inspection, suites disciplinaires.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 2/5
-- Controles prevus : Audits, rapports, inspections periodiques.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 2/5
-- Failles possibles : Trop de discretion locale, lenteur administrative, peur du scandale.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-
-## 4. Lois, reglements, decisions publiques
-- Texte applicable : Cadre general de protection des mineurs et obligation de signalement.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 2/5
-- Decision recente : Annonce d'une mission de controle.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Rapport / enquete / commission : Rapport attendu ou deja demande par l'autorite publique.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Ce que le droit permet deja : Sanctionner, fermer, inspecter, transmettre a la justice.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-
-## 5. Declarations politiques ou polemiques
-- Gouvernement : Promet de ne laisser aucune zone grise.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Opposition : Accuse l'Etat d'avoir protege une institution au lieu de proteger les victimes.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-- Experts / syndicats / associations : Demandent des controles independants et des suites judiciaires.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Contradictions reperees : Les memes acteurs disent faire confiance aux institutions puis reclament une surveillance totale.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-
-## 6. Comparaisons mediatiques
-- Traitement mediatique dominant : Recit centre sur le scandale, les silences et la responsabilite politique.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 4/5
-- Differences selon les camps : Certains parlent de faillite morale, d'autres de cas particulier.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 4/5
-- Deux poids deux mesures possible : Severite variable selon que l'institution touche l'Etat, le prive ou le religieux.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-
-## 7. Contre-exemples
-- Cas similaire mieux gere : Etablissement ayant declenche rapidement un signalement externe.
-  Pertinence au sujet : 3/5
-  Potentiel buzz : 2/5
-- Politique qui a fonctionne : Controle independant avec publication rapide des conclusions.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 2/5
-- Element qui nuance l'accusation principale : Tout controle d'Etat peut aussi devenir bureaucratique et inefficace.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 3/5
-
-## 8. Acteurs impliques
-- Responsables directs : Direction locale et autorites chargees du suivi.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-- Institutions : Etablissement, inspection, ministere, justice.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 3/5
-- Victimes / publics concernes : Eleves, familles, personnels ayant alerte.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-- Acteurs silencieux : Ceux qui avaient interet a eviter une crise publique.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 5/5
-- Qui gagne / qui perd politiquement : Gagnent ceux qui incarnent l'autorite ; perdent ceux associes au silence.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 4/5
-
-## 9. Chiffres simples et bilans
-- Nombre de personnes concernees : A renseigner seulement si source solide.
-  Pertinence au sujet : 4/5
-  Potentiel buzz : 3/5
-- Couts / budgets : Peu utile sauf si le financement public est au coeur du debat.
-  Pertinence au sujet : 2/5
-  Potentiel buzz : 2/5
-- Evolution dans le temps : Montrer si les alertes se sont accumulees.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-- Ordre de grandeur utile : Nombre d'alertes, delai de reaction, niveau de controle.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 4/5
-
-## Sources
-- [S1] Source mock - a remplacer par article ou rapport - URL - date
-  Pertinence au sujet : 1/5
-  Potentiel buzz : 1/5
-- [S2] Source mock - a remplacer par declaration officielle - URL - date
-  Pertinence au sujet : 1/5
-  Potentiel buzz : 1/5
-- [S3] Source mock - a remplacer par archive comparable - URL - date
-  Pertinence au sujet : 1/5
-  Potentiel buzz : 1/5
-
-## Points de vigilance
-- Ne pas affirmer : Ne pas attribuer de faute personnelle sans source solide.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 1/5
-- Faits a verifier : Dates, noms, nombre d'alertes, contenu exact des decisions.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 2/5
-- Risque de diffamation / accusation trop directe : Eleve si le thread transforme une question de responsabilite en accusation nominative.
-  Pertinence au sujet : 5/5
-  Potentiel buzz : 1/5"""
+""" + DOSSIER_PLACEHOLDER
 
 CHARACTERS = [
     {"id": "napoleon",      "name": "Napoléon Bonaparte", "emoji": "⚔️",  "active": True,  "era": "1769 – 1821"},
@@ -1418,6 +1282,13 @@ DOSSIER_HTML = """
       overflow: hidden;
     }
     .dossier-section[open] { border-color: #2b4268; }
+    .dossier-section.meta-section {
+      background: #101624; border-color: #334155;
+    }
+    .dossier-section.meta-section .section-title { color: #facc15; }
+    .dossier-section.meta-section .dossier-item {
+      background: #0d1829; border-color: #334155;
+    }
     .dossier-section summary {
       list-style: none; cursor: pointer; display: flex; justify-content: space-between;
       align-items: center; gap: .75rem; padding: .85rem;
@@ -1577,7 +1448,7 @@ DOSSIER_HTML = """
 
       <div class="dossier-view">
         {% for section in dossier_sections %}
-        <details class="dossier-section" {% if loop.index <= 3 %}open{% endif %}>
+        <details class="dossier-section {% if section["is_meta"] %}meta-section{% endif %}" {% if loop.index <= 3 %}open{% endif %}>
           <summary>
             <span class="section-title">{{ section.title }}</span>
             <span class="section-meta">{{ section["items"]|length }} éléments</span>
@@ -1593,10 +1464,12 @@ DOSSIER_HTML = """
                   <div class="item-title">{{ item.title }}</div>
                   {% if item.body %}<div class="item-body">{{ item.body }}</div>{% endif %}
                 </div>
+                {% if not section["is_meta"] %}
                 <div class="score-row">
                   <span class="score-chip rel">Pertinence <span class="score-value">{{ item.relevance or "-" }}/5</span></span>
                   <span class="score-chip buzz">Buzz <span class="score-value">{{ item.buzz or "-" }}/5</span></span>
                 </div>
+                {% endif %}
               </div>
             </article>
             {% endfor %}
@@ -1668,6 +1541,15 @@ DOSSIER_HTML = """
 
 # ── ROUTES ────────────────────────────────────────────────────────────────────
 
+def _is_meta_dossier_section(title: str) -> bool:
+    normalized = title.strip().lower()
+    return (
+        normalized.startswith("mode operatoire")
+        or normalized.startswith("mode opératoire")
+        or normalized.startswith("instructions de constitution")
+    )
+
+
 def _score_from_line(line: str) -> int | None:
     import re
 
@@ -1702,13 +1584,19 @@ def _parse_dossier_for_view(dossier: str) -> tuple[list[dict], list[dict]]:
         if line.startswith("## "):
             _finish_dossier_item(current_section, current_item)
             current_item = None
-            current_section = {"title": line[3:].strip(), "notes": [], "items": []}
+            title = line[3:].strip()
+            current_section = {
+                "title": title,
+                "notes": [],
+                "items": [],
+                "is_meta": _is_meta_dossier_section(title),
+            }
             sections.append(current_section)
             continue
         if line.startswith("- "):
             _finish_dossier_item(current_section, current_item)
             if current_section is None:
-                current_section = {"title": "Dossier", "notes": [], "items": []}
+                current_section = {"title": "Dossier", "notes": [], "items": [], "is_meta": False}
                 sections.append(current_section)
             item_text = line[2:].strip()
             if " : " in item_text:
@@ -1741,7 +1629,13 @@ def _parse_dossier_for_view(dossier: str) -> tuple[list[dict], list[dict]]:
 
     _finish_dossier_item(current_section, current_item)
     top_items = sorted(
-        [item for section in sections for item in section["items"] if item.get("relevance") is not None],
+        [
+            item
+            for section in sections
+            if not section.get("is_meta")
+            for item in section["items"]
+            if item.get("relevance") is not None
+        ],
         key=lambda item: ((item.get("relevance") or 0) + (item.get("buzz") or 0), item.get("buzz") or 0),
         reverse=True,
     )[:4]
@@ -1923,7 +1817,7 @@ def dossier_page():
     current_topic = _load_current_topic() or _get_thread_state()
     question = (current_topic or {}).get("question") or "Aucun sujet du jour."
     sources = (current_topic or {}).get("sources") or []
-    dossier = (current_topic or {}).get("dossier") or MOCK_DOSSIER
+    dossier = (current_topic or {}).get("dossier") or DEFAULT_DOSSIER_TEMPLATE
     angle = (current_topic or {}).get("angle") or ""
     origin = (current_topic or {}).get("origin") or "manual"
     character = (current_topic or {}).get("character") or "napoleon"
