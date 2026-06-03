@@ -165,6 +165,10 @@ def _editorial_brief_text(dossier: str = "", angle: str = "") -> str:
         "Tu n'en es pas l'auteur : utilise-le comme brief contemporain, puis juge avec ta voix propre.",
         "Ne mentionne jamais le dossier, la veille éditoriale ou l'angle comme consignes visibles.",
         "N'invente pas de faits contemporains absents du dossier.",
+        "Cherche d'abord les items à fort Potentiel buzz, surtout la section 'Munitions polemiques sourcees' si elle existe.",
+        "Ne neutralise pas les axes clivants sourcés : immigration, frontières, assimilation, prestations sociales, argent public, sécurité et impunité peuvent être utilisés s'ils sont reliés au sujet par le dossier.",
+        "Distingue les faits établis des accusations attribuées ou des interprétations politiques ; attaque le mécanisme vérifié quand un nom propre serait fragile.",
+        "Si un axe est indiqué 'Statut : fragile' ou 'Statut : non trouve', ne le transforme pas en fait.",
     ]
     if dossier:
         parts.append(f"\nDOSSIER ÉDITORIAL :\n{dossier}")

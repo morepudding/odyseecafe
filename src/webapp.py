@@ -184,6 +184,26 @@ En 5 a 8 lignes : ce qui s'est passe, ou, quand, qui est concerne, pourquoi c'es
   Pertinence au sujet : /5
   Potentiel buzz : /5
 
+## 10. Munitions polemiques sourcees
+- Angle immigration / frontieres / assimilation :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Angle prestations sociales / aides / cout public :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Angle ordre public / impunite / sanction :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Angle deux poids deux mesures :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Citation ou chiffre qui peut faire reagir :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+- Angle minoritaire mais source :
+  Pertinence au sujet : /5
+  Potentiel buzz : /5
+
 ## Sources
 - [S1] Titre - media/institution - URL - date
   Pertinence au sujet : /5
@@ -231,12 +251,16 @@ DEFAULT_DOSSIER_TEMPLATE = """# Dossier editorial a constituer
 - Ne pas inventer de source, de date, de chiffre, de citation ou de responsabilite nominative.
 - Mettre une note Pertinence/Buzz seulement sur les elements editoriaux, jamais sur le mode operatoire IA.
 - Scores sur 10 : 5 = utile mais banal, 7 = solide, 8 = tres utile, 9-10 = rare/decisif. Ne donne pas 9 ou 10 a une information generique.
+- Referentiel Buzz obligatoire : 0-3 = froid ou administratif ; 4-5 = utile mais peu partageable ; 6 = angle clair ; 7 = angle clivant avec acteur/chiffre ; 8 = forte tension politique ou morale ; 9 = contradiction documentee, chiffre choquant ou phrase exploitable ; 10 = fait rare, tres source, immediatement inflammable et central au sujet.
+- Ne mets jamais 9 ou 10 sans au moins deux signaux parmi : chiffre concret, responsable identifiable, contradiction public/prive, lien avec argent public, immigration/frontieres, prestations sociales, securite/impunite, hypocrisie institutionnelle, promesse non tenue, victime ou groupe identifiable.
 - Si Pertinence ou Buzz est strictement superieur a 8, ajouter une ligne "Justification score :" qui explique pourquoi ce score merite d'etre aussi haut.
 - Ajouter pour chaque item une ligne "Statut : trouve", "Statut : fragile" ou "Statut : non trouve".
 - Ne pas t'arreter a la premiere information trouvee : pour chaque bloc important, chercher au moins deux angles differents (fait recent, source primaire, contradiction, chiffre, contre-exemple).
 - Eviter les repetitions : si un fait est deja utilise dans un item, le prochain item doit apporter un angle nouveau, une nuance, une consequence ou une incertitude.
 - Rendre le dossier editorialement exploitable : pour chaque bloc important, faire ressortir la tension qui peut nourrir un thread (contradiction politique, hypocrisie institutionnelle, promesse non tenue, deux poids deux mesures, acteur qui gagne/perd, angle qui fache).
 - Etre un peu plus polemique dans l'analyse, sans forcer le trait : nommer les conflits, les angles embarrassants et les responsabilites institutionnelles possibles, mais ne jamais transformer une hypothese en fait etabli.
+- Ne pas aseptiser les axes sensibles : immigration, frontieres, assimilation, prestations sociales, aides publiques, cout fiscal, delinquance et impunite doivent etre cherches quand ils peuvent etre relies au sujet par une source. Si rien de solide n'est trouve, ecrire "Statut : non trouve" plutot que supprimer l'axe.
+- Distinguer "fait etabli", "accusation attribuee", "interpretation politique" et "angle buzzable". Napoléon fera le tri ensuite ; ton role est de fournir les munitions sourcees, pas de choisir la version la plus prudente.
 - Ne pas confondre prudence juridique et platitude : quand une accusation nominative est fragile, deplacer l'angle vers le mecanisme verifie (silence, controle absent, opacite, inertie, incitation politique, defaut de moyens).
 - Laisser vide ou signaler "non trouve" quand une information n'a pas ete verifiee ; ne pas remplir un item avec une paraphrase d'un item precedent.
 - Privilegier les sources primaires et les articles avec sources, mais garder aussi au moins une source de controverse ou de contradiction quand elle existe.
@@ -2081,6 +2105,10 @@ Retourne uniquement les 5 tweets."""
             f"Angle éditorial :\n{angle.strip()}" if angle.strip() else "",
             "Ne mentionne jamais le dossier, la veille éditoriale ou l'angle comme consignes visibles.",
             "N'invente pas de faits contemporains absents du dossier.",
+            "Cherche d'abord les items a fort Potentiel buzz, surtout la section 'Munitions polemiques sourcees' si elle existe.",
+            "Ne neutralise pas les axes clivants sources : immigration, frontieres, assimilation, prestations sociales, argent public, securite et impunite peuvent etre utilises s'ils sont relies au sujet par le dossier.",
+            "Distingue les faits etablis des accusations attribuees ou des interpretations politiques ; attaque le mecanisme verifie quand un nom propre serait fragile.",
+            "Si un axe est indique 'Statut : fragile' ou 'Statut : non trouve', ne le transforme pas en fait.",
             style,
         ] if part
     )

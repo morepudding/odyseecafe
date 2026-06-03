@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -27,6 +28,8 @@ RSS_QUERIES = [
     "France polémique actualité politique société",
     "France controverse gouvernement justice école",
     "France débat immigration sécurité laïcité",
+    "France prestations sociales allocations impôts polémique",
+    "France OQTF immigration délinquance controverse",
     "France réforme colère polémique",
 ]
 
@@ -36,27 +39,67 @@ RSS_FEEDS = [
     ("Franceinfo titres", "https://www.francetvinfo.fr/titres.rss"),
 ]
 
-HOT_WORDS = {
-    "polémique": 9,
-    "controverse": 9,
-    "colère": 8,
-    "scandale": 8,
-    "accusé": 7,
-    "accusée": 7,
-    "débat": 7,
-    "justice": 6,
-    "gouvernement": 6,
-    "réforme": 6,
-    "immigration": 6,
-    "sécurité": 6,
-    "école": 6,
-    "laïcité": 6,
-    "budget": 5,
-    "impôts": 5,
-    "retraites": 5,
-    "agriculteurs": 5,
-    "grève": 5,
-}
+TOPIC_SCORE_RULES = [
+    (
+        "conflit_public",
+        20,
+        ("polemique", "controverse", "colere", "scandale", "accuse", "violence", "emeute"),
+    ),
+    (
+        "autorite_etat",
+        18,
+        ("gouvernement", "justice", "police", "securite", "etat", "loi", "sanction", "ordre"),
+    ),
+    (
+        "nation_frontieres",
+        18,
+        ("immigration", "migrant", "etranger", "oqtf", "frontiere", "assimilation", "laicite", "islam"),
+    ),
+    (
+        "argent_social",
+        16,
+        ("prestation", "allocation", "aides sociales", "rsa", "caf", "impots", "budget", "fraude"),
+    ),
+    (
+        "elite_personnalisee",
+        12,
+        ("macron", "bayrou", "le pen", "melenchon", "bardella", "retailleau", "borne", "attal"),
+    ),
+    (
+        "vie_quotidienne",
+        10,
+        ("ecole", "retraites", "agriculteurs", "greve", "logement", "sante", "energie"),
+    ),
+]
+
+
+def _fold_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch)).lower()
+
+
+def score_topic(title: str, position: int = 0) -> tuple[int, list[str]]:
+    """Score a topic on a bounded, inspectable 0-100 buzz scale."""
+    folded = _fold_text(title)
+    score = 0
+    reasons: list[str] = []
+
+    for label, weight, terms in TOPIC_SCORE_RULES:
+        matched = [term for term in terms if term in folded]
+        if matched:
+            score += weight
+            reasons.append(f"{label}:{','.join(matched[:3])}")
+
+    if "?" in title:
+        score += 6
+        reasons.append("question_directe")
+
+    recency_bonus = max(0, 10 - position)
+    if recency_bonus:
+        score += recency_bonus
+        reasons.append(f"recence:{recency_bonus}")
+
+    return min(score, 100), reasons
 
 
 def _strip_source(title: str) -> str:
@@ -110,6 +153,7 @@ def _fetch_rss_items(url: str, query: str, limit: int) -> list[dict]:
         clean = _strip_source(title)
         if not clean:
             continue
+        score, score_reason = score_topic(clean, position=position)
         items.append(
             {
                 "title": clean,
@@ -117,23 +161,15 @@ def _fetch_rss_items(url: str, query: str, limit: int) -> list[dict]:
                 "url": link,
                 "published": published,
                 "query": query,
-                "score": score_title(clean) + max(0, 10 - position),
+                "score": score,
+                "score_reason": score_reason,
             }
         )
     return items
 
 
 def score_title(title: str) -> int:
-    lower = title.lower()
-    score = 0
-    for word, weight in HOT_WORDS.items():
-        if word in lower:
-            score += weight
-    if "?" in title:
-        score += 4
-    if any(name in lower for name in ("macron", "bayrou", "le pen", "mélenchon", "bardella")):
-        score += 4
-    return score
+    return score_topic(title)[0]
 
 
 def make_question(title: str) -> str:
@@ -174,7 +210,15 @@ def push_to_webapp(payload: dict) -> bool:
 
 def run(push: bool = True, forced_question: str | None = None, forced_source: str | None = None) -> dict:
     if forced_question:
-        sources = [{"title": "Sujet fourni par la veille OpenClaw", "url": forced_source or "", "score": 999}]
+        score, score_reason = score_topic(forced_question)
+        sources = [
+            {
+                "title": "Sujet fourni par la veille OpenClaw",
+                "url": forced_source or "",
+                "score": score,
+                "score_reason": score_reason,
+            }
+        ]
         payload = save_topic(forced_question, sources)
         payload["origin"] = "openclaw_news_watch"
         payload["pushed_to_webapp"] = push_to_webapp(payload) if push else False

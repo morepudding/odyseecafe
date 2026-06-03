@@ -46,16 +46,22 @@ NAPOLEON_THEMES = [
         "sort_order": 4,
     },
     {
+        "slug": "argent-prestations",
+        "name": "Argent public & prestations",
+        "description": "Prestations sociales, aides publiques, impots, fraude, couts, redistribution.",
+        "sort_order": 5,
+    },
+    {
         "slug": "elites-gouvernement",
         "name": "Elites & gouvernement",
         "description": "Macron, technocrates, Parlement, chefs sans vision, merite contre caste.",
-        "sort_order": 5,
+        "sort_order": 6,
     },
     {
         "slug": "europe-monde",
         "name": "Europe & monde",
         "description": "UE, souverainete europeenne, Russie/USA/Chine, diplomatie, dependance strategique.",
-        "sort_order": 6,
+        "sort_order": 7,
     },
 ]
 
