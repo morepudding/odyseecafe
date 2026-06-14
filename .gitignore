@@ -20,6 +20,12 @@ node_modules/
 .env.local
 .env.*.local
 
+# Local vector stores / SQLite databases
+chroma_db/
+data/*.sqlite
+data/*.sqlite3
+data/chroma_work/
+
 # Jupyter
 .ipynb_checkpoints/
 
