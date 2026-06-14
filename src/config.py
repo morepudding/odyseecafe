@@ -3,6 +3,16 @@ Configuration helpers shared by OdyséeCafé scripts.
 """
 
 import os
+from pathlib import Path
+
+
+def load_local_env(path: str | Path) -> bool:
+    """Load .env.local when python-dotenv is installed; otherwise no-op."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return False
+    return bool(load_dotenv(dotenv_path=path))
 
 
 def env_value(name: str, default: str = "") -> str:

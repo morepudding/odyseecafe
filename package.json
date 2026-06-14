@@ -1,0 +1,15 @@
+{
+  "name": "odyseecafe",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "supabase": "supabase",
+    "db:link": "supabase link --project-ref smsymsqwegghztfxcoku",
+    "db:push": "supabase db push --linked",
+    "db:push:dry-run": "supabase db push --linked --dry-run",
+    "rag:ingest": "python src/ingest_supabase.py --character napoleon"
+  },
+  "devDependencies": {
+    "supabase": "^2.106.0"
+  }
+}
